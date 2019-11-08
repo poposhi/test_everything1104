@@ -173,7 +173,8 @@ namespace test_everything
 
         private void bt_start_Click(object sender, EventArgs e)
         { //副程式目的  :: 建立一個master rtu 並且寫入資料 
-            //設定serialPort參數 柯華pcs參數 传输模式：RTU 波特率：默认为 9600bps，并可设置为 2400，4800，19200bps 校验位：无校验 数据位：8bit 停止位：1bit 
+          //設定serialPort參數 柯華pcs參數 传输模式：RTU 波特率：默认为 9600bps，并可设置为 2400，4800，19200bps 校验位：无校验 数据位：8bit 停止位：1bit 
+            #region rtu 連線
             try
             {
                 serialPort.PortName = "COM3";
@@ -192,14 +193,17 @@ namespace test_everything
                 Thread.Sleep(2000);
                 serialPort.Open();
                 Console.WriteLine(DateTime.Now.ToString() + " =>Disconnect " + serialPort.PortName);
+                lv_Print(listView1, DateTime.Now.ToString() + " =>Disconnect " + serialPort.PortName);
             }
+            #endregion
             //master_test_everthing.WriteSingleRegister(1, 5001, 555);
+            #region modbus 通訊測試
             try
             { 
                 master_test_everthing.Transport.Retries = 0;   //don't have to do retries
                 master_test_everthing.Transport.ReadTimeout = 300; //milliseconds
                                                     //master.ReadHoldingRegisters(1, startAddress, numofPoints);
-                master_test_everthing.WriteSingleRegister(1, 101, 555);
+                master_test_everthing.WriteSingleRegister(1, 6008, 555); //結果會寫入46009 
                 byte slaveID = 1;
                 ushort startAddress = 1, vvalue = 1;
             }
@@ -210,7 +214,7 @@ namespace test_everything
             }
 
             bt_test_read_pcs.Enabled = true;
-
+            #endregion
             //timer1.Enabled = true;
             //timer2.Enabled = true;
 
@@ -419,14 +423,14 @@ namespace test_everything
         {
             Debug.Print(listAO.ToString());
         }
-        
+
 
         //Thread oThreadA = new Thread(new ThreadStart(Read_PCS));  
         // ???  不能夠開一個平行緒  Thread wait = new Thread(new ThreadStart(bt_test_thead_Click)); 
-        /*要傳入的變數 ,延遲多久開始執行,  每隔多久執行一次  ，所以應該是開一個平行緒一直重複的在做這些事情 
-         * this._ThreadTimer = new ThreadingTimer(new System.Threading.TimerCallback(Site_Controller_Operation), currentName, 0, 100);
-            this._ThreadTimer2 = new ThreadingTimer(new System.Threading.TimerCallback(Data_Show), currentName, 0, 1000);
-         */
+        /* 要傳入的變數 ,延遲多久開始執行,  每隔多久執行一次  ，所以應該是開一個平行緒一直重複的在做這些事情 
+       this._ThreadTimer = new ThreadingTimer(new System.Threading.TimerCallback(Site_Controller_Operation), currentName, 0, 100);
+           this._ThreadTimer2 = new ThreadingTimer(new System.Threading.TimerCallback(Data_Show), currentName, 0, 1000);
+        */
         private void bt_test_thead_Click(object sender, EventArgs e)
         {
             Debug.Print("into bt_test_thead_Click") ;
@@ -567,7 +571,7 @@ namespace test_everything
                     {
                         err_msg = "Insulation Fault";
                         PCS1.Error_bit[0, 0] = true;
-                        Mongo_error(Device_ID, err_msg, error_time); //故障代碼要映射到對應的暫存器 
+                        pcs_error(Device_ID, err_msg, error_time); //故障代碼要映射到對應的暫存器 
                     }
                 }
                 else if (a == 0)
@@ -576,10 +580,11 @@ namespace test_everything
                     {
                         err_msg = "Insulation Fault";
                         PCS1.Error_bit[0, 0] = false;
-                        Mongo_Reset(Device_ID, err_msg, error_time);
+                        pcs_recovery(Device_ID, err_msg, error_time);
                     }
                 }
                 /////////////////////////////////////////
+                
                 a = PCS1.Error1 & 2;
                 if (a == 2)
                 {
@@ -587,7 +592,7 @@ namespace test_everything
                     {
                         err_msg = "Leakage Current";
                         PCS1.Error_bit[0, 1] = true;
-                        Mongo_error(Device_ID, err_msg, error_time);
+                        pcs_error(Device_ID, err_msg, error_time);
                     }
                 }
                 else if (a == 0)
@@ -596,7 +601,7 @@ namespace test_everything
                     {
                         err_msg = "Leakage Current";
                         PCS1.Error_bit[0, 1] = false;
-                        Mongo_Reset(Device_ID, err_msg, error_time);
+                        pcs_recovery(Device_ID, err_msg, error_time);
                     }
                 }
                 /////////////////////////////////////
@@ -607,7 +612,7 @@ namespace test_everything
                     {
                         err_msg = "DC Over Voltage";
                         PCS1.Error_bit[0, 2] = true;
-                        Mongo_error(Device_ID, err_msg, error_time);
+                        pcs_error(Device_ID, err_msg, error_time);
                     }
                 }
                 else if (a == 0)
@@ -616,7 +621,7 @@ namespace test_everything
                     {
                         err_msg = "DC Over Voltage";
                         PCS1.Error_bit[0, 2] = false;
-                        Mongo_Reset(Device_ID, err_msg, error_time);
+                        pcs_recovery(Device_ID, err_msg, error_time);
                     }
                 }
                 ///////////////////////////////////////
@@ -627,7 +632,7 @@ namespace test_everything
                     {
                         err_msg = "Grid Voltage Abnornal";
                         PCS1.Error_bit[0, 3] = true;
-                        Mongo_error(Device_ID, err_msg, error_time);
+                        pcs_error(Device_ID, err_msg, error_time);
                     }
                 }
                 else if (a == 0)
@@ -636,7 +641,7 @@ namespace test_everything
                     {
                         err_msg = "Grid Voltage Abnornal";
                         PCS1.Error_bit[0, 3] = false;
-                        Mongo_Reset(Device_ID, err_msg, error_time);
+                        pcs_recovery(Device_ID, err_msg, error_time);
                     }
                 }
                 /////////////////////////////////////////
@@ -647,7 +652,7 @@ namespace test_everything
                     {
                         err_msg = "Grid Line Connection Abnornal";
                         PCS1.Error_bit[0, 4] = true;
-                        Mongo_error(Device_ID, err_msg, error_time);
+                        pcs_error(Device_ID, err_msg, error_time);
                     }
                 }
                 else if (a == 0)
@@ -656,7 +661,7 @@ namespace test_everything
                     {
                         err_msg = "Grid Line Connection Abnornal";
                         PCS1.Error_bit[0, 4] = false;
-                        Mongo_Reset(Device_ID, err_msg, error_time);
+                        pcs_recovery(Device_ID, err_msg, error_time);
                     }
                 }
                 /////////////////////////////
@@ -685,7 +690,7 @@ namespace test_everything
                     {
                         err_msg = "Grid Frequency Abnormal";
                         PCS1.Error_bit[0, 6] = true;
-                        Mongo_error(Device_ID, err_msg, error_time);
+                        pcs_error(Device_ID, err_msg, error_time);
                     }
                 }
                 else if (a == 0)
@@ -694,7 +699,7 @@ namespace test_everything
                     {
                         err_msg = "Grid Frequency Abnormal";
                         PCS1.Error_bit[0, 6] = false;
-                        Mongo_Reset(Device_ID, err_msg, error_time);
+                        pcs_recovery(Device_ID, err_msg, error_time);
                     }
                 }
                 //////////////////////////////////////
@@ -705,7 +710,7 @@ namespace test_everything
                     {
                         err_msg = "IGBT Over Temperature";
                         PCS1.Error_bit[0, 7] = true;
-                        Mongo_error(Device_ID, err_msg, error_time);
+                        pcs_error(Device_ID, err_msg, error_time);
                     }
                 }
                 else if (a == 0)
@@ -714,7 +719,7 @@ namespace test_everything
                     {
                         err_msg = "IGBT Over Temperature";
                         PCS1.Error_bit[0, 7] = false;
-                        Mongo_Reset(Device_ID, err_msg, error_time);
+                        pcs_recovery(Device_ID, err_msg, error_time);
                     }
                 }
                 /////////////////////////////////////////////
@@ -743,7 +748,7 @@ namespace test_everything
                     {
                         err_msg = "Over Current";
                         PCS1.Error_bit[0, 9] = true;
-                        Mongo_error(Device_ID, err_msg, error_time);
+                        pcs_error(Device_ID, err_msg, error_time);
                     }
                 }
                 else if (a == 0)
@@ -752,7 +757,7 @@ namespace test_everything
                     {
                         err_msg = "Over Current";
                         PCS1.Error_bit[0, 9] = false;
-                        Mongo_Reset(Device_ID, err_msg, error_time);
+                        pcs_recovery(Device_ID, err_msg, error_time);
                     }
                 }
                 //////////////////////////////////////////////////
@@ -763,7 +768,7 @@ namespace test_everything
                     {
                         err_msg = "DC Soft Boot Fault";
                         PCS1.Error_bit[0, 10] = true;
-                        Mongo_error(Device_ID, err_msg, error_time);
+                        pcs_error(Device_ID, err_msg, error_time);
                     }
                 }
                 else if (a == 0)
@@ -772,7 +777,7 @@ namespace test_everything
                     {
                         err_msg = "DC Soft Boot Fault";
                         PCS1.Error_bit[0, 10] = false;
-                        Mongo_Reset(Device_ID, err_msg, error_time);
+                        pcs_recovery(Device_ID, err_msg, error_time);
                     }
                 }
                 ///////////////////////////////////////////
@@ -783,7 +788,7 @@ namespace test_everything
                     {
                         err_msg = "DC Contactor Fault";
                         PCS1.Error_bit[0, 11] = true;
-                        Mongo_error(Device_ID, err_msg, error_time);
+                        pcs_error(Device_ID, err_msg, error_time);
                     }
                 }
                 else if (a == 0)
@@ -792,7 +797,7 @@ namespace test_everything
                     {
                         err_msg = "DC Contactor Fault";
                         PCS1.Error_bit[0, 11] = false;
-                        Mongo_Reset(Device_ID, err_msg, error_time);
+                        pcs_recovery(Device_ID, err_msg, error_time);
                     }
                 }
                 //////////////////////////////////////////////
@@ -803,7 +808,7 @@ namespace test_everything
                     {
                         err_msg = "Wind Turbine Fault";
                         PCS1.Error_bit[0, 12] = true;
-                        Mongo_error(Device_ID, err_msg, error_time);
+                        pcs_error(Device_ID, err_msg, error_time);
                     }
                 }
                 else if (a == 0)
@@ -812,7 +817,7 @@ namespace test_everything
                     {
                         err_msg = "Wind Turbine Fault";
                         PCS1.Error_bit[0, 12] = false;
-                        Mongo_Reset(Device_ID, err_msg, error_time);
+                        pcs_recovery(Device_ID, err_msg, error_time);
                     }
                 }
                 /////////////////////////////////////////////////////
@@ -823,7 +828,7 @@ namespace test_everything
                     {
                         err_msg = "Contactor Fault";
                         PCS1.Error_bit[0, 13] = true;
-                        Mongo_error(Device_ID, err_msg, error_time);
+                        pcs_error(Device_ID, err_msg, error_time);
                     }
                 }
                 else if (a == 0)
@@ -832,7 +837,7 @@ namespace test_everything
                     {
                         err_msg = "Contactor Fault";
                         PCS1.Error_bit[0, 13] = false;
-                        Mongo_Reset(Device_ID, err_msg, error_time);
+                        pcs_recovery(Device_ID, err_msg, error_time);
                     }
                 }
                 ////////////////////////////////////////////////////////
@@ -843,7 +848,7 @@ namespace test_everything
                     {
                         err_msg = "Switch Disconnect in Operation";
                         PCS1.Error_bit[0, 14] = true;
-                        Mongo_error(Device_ID, err_msg, error_time);
+                        pcs_error(Device_ID, err_msg, error_time);
                     }
                 }
                 else if (a == 0)
@@ -852,7 +857,7 @@ namespace test_everything
                     {
                         err_msg = "Switch Disconnect in Operation";
                         PCS1.Error_bit[0, 14] = false;
-                        Mongo_Reset(Device_ID, err_msg, error_time);
+                        pcs_recovery(Device_ID, err_msg, error_time);
                     }
                 }
                 ///////////////////////////////////////////////
@@ -863,7 +868,7 @@ namespace test_everything
                     {
                         err_msg = "Hardware Fault";
                         PCS1.Error_bit[0, 15] = true;
-                        Mongo_error(Device_ID, err_msg, error_time);
+                        pcs_error(Device_ID, err_msg, error_time);
                     }
                 }
                 else if (a == 0)
@@ -872,7 +877,7 @@ namespace test_everything
                     {
                         err_msg = "Hardware Fault";
                         PCS1.Error_bit[0, 15] = false;
-                        Mongo_Reset(Device_ID, err_msg, error_time);
+                        pcs_recovery(Device_ID, err_msg, error_time);
                     }
                 }
 
@@ -889,7 +894,7 @@ namespace test_everything
                     {
                         err_msg = "Internal Over temperature";
                         PCS1.Error_bit[1, 0] = true;
-                        Mongo_error(Device_ID, err_msg, error_time);
+                        pcs_error(Device_ID, err_msg, error_time);
                     }
                 }
                 else if (a == 0)
@@ -898,7 +903,7 @@ namespace test_everything
                     {
                         err_msg = "Internal Over temperature";
                         PCS1.Error_bit[1, 0] = false;
-                        Mongo_Reset(Device_ID, err_msg, error_time);
+                        pcs_recovery(Device_ID, err_msg, error_time);
                     }
                 }
                 /////////////////////////////////////////
@@ -910,7 +915,7 @@ namespace test_everything
                     {
                         err_msg = "Soft Boot Fault";
                         PCS1.Error_bit[1, 1] = true;
-                        Mongo_error(Device_ID, err_msg, error_time);
+                        pcs_error(Device_ID, err_msg, error_time);
                     }
                 }
                 else if (a == 0)
@@ -919,7 +924,7 @@ namespace test_everything
                     {
                         err_msg = "Soft Boot Fault";
                         PCS1.Error_bit[1, 1] = false;
-                        Mongo_Reset(Device_ID, err_msg, error_time);
+                        pcs_recovery(Device_ID, err_msg, error_time);
                     }
                 }
                 /////////////////////////////////////
@@ -930,7 +935,7 @@ namespace test_everything
                     {
                         err_msg = "Communication Fault";
                         PCS1.Error_bit[1, 2] = true;
-                        Mongo_error(Device_ID, err_msg, error_time);
+                        pcs_error(Device_ID, err_msg, error_time);
                     }
                 }
                 else if (a == 0)
@@ -939,7 +944,7 @@ namespace test_everything
                     {
                         err_msg = "Communication Fault";
                         PCS1.Error_bit[1, 2] = false;
-                        Mongo_Reset(Device_ID, err_msg, error_time);
+                        pcs_recovery(Device_ID, err_msg, error_time);
                     }
                 }
                 ///////////////////////////////////////
@@ -950,7 +955,7 @@ namespace test_everything
                     {
                         err_msg = "Lightning Arrester Fault";
                         PCS1.Error_bit[1, 3] = true;
-                        Mongo_error(Device_ID, err_msg, error_time);
+                        pcs_error(Device_ID, err_msg, error_time);
                     }
                 }
                 else if (a == 0)
@@ -959,7 +964,7 @@ namespace test_everything
                     {
                         err_msg = "Lightning Arrester Fault";
                         PCS1.Error_bit[1, 3] = false;
-                        Mongo_Reset(Device_ID, err_msg, error_time);
+                        pcs_recovery(Device_ID, err_msg, error_time);
                     }
                 }
                 /////////////////////////////////////////
@@ -970,7 +975,7 @@ namespace test_everything
                     {
                         err_msg = "Emergency Stop Fault";
                         PCS1.Error_bit[1, 4] = true;
-                        Mongo_error(Device_ID, err_msg, error_time);
+                        pcs_error(Device_ID, err_msg, error_time);
                     }
                 }
                 else if (a == 0)
@@ -979,7 +984,7 @@ namespace test_everything
                     {
                         err_msg = "Emergency Stop Fault";
                         PCS1.Error_bit[1, 4] = false;
-                        Mongo_Reset(Device_ID, err_msg, error_time);
+                        pcs_recovery(Device_ID, err_msg, error_time);
                     }
                 }
                 /////////////////////////////
@@ -990,7 +995,7 @@ namespace test_everything
                     {
                         err_msg = "BMS System Fault";
                         PCS1.Error_bit[1, 5] = true;
-                        Mongo_error(Device_ID, err_msg, error_time);
+                        pcs_error(Device_ID, err_msg, error_time);
                     }
                 }
                 else if (a == 0)
@@ -999,7 +1004,7 @@ namespace test_everything
                     {
                         err_msg = "BMS System Fault";
                         PCS1.Error_bit[1, 5] = false;
-                        Mongo_Reset(Device_ID, err_msg, error_time);
+                        pcs_recovery(Device_ID, err_msg, error_time);
                     }
                 }
                 /////////////////////////////////////////////
@@ -1010,7 +1015,7 @@ namespace test_everything
                     {
                         err_msg = "BMS Communication Fault";
                         PCS1.Error_bit[1, 6] = true;
-                        Mongo_error(Device_ID, err_msg, error_time);
+                        pcs_error(Device_ID, err_msg, error_time);
                     }
                 }
                 else if (a == 0)
@@ -1019,7 +1024,7 @@ namespace test_everything
                     {
                         err_msg = "BMS Communication Fault";
                         PCS1.Error_bit[1, 6] = false;
-                        Mongo_Reset(Device_ID, err_msg, error_time);
+                        pcs_recovery(Device_ID, err_msg, error_time);
                     }
                 }
                 //////////////////////////////////////
@@ -1030,7 +1035,7 @@ namespace test_everything
                     {
                         err_msg = "Backflow Prevention Communication Fault";
                         PCS1.Error_bit[1, 7] = true;
-                        Mongo_error(Device_ID, err_msg, error_time);
+                        pcs_error(Device_ID, err_msg, error_time);
                     }
                 }
                 else if (a == 0)
@@ -1039,7 +1044,7 @@ namespace test_everything
                     {
                         err_msg = "Backflow Prevention Communication Fault";
                         PCS1.Error_bit[1, 7] = false;
-                        Mongo_Reset(Device_ID, err_msg, error_time);
+                        pcs_recovery(Device_ID, err_msg, error_time);
                     }
                 }
                 /////////////////////////////////////////////
@@ -1050,7 +1055,7 @@ namespace test_everything
                     {
                         err_msg = "CANA Wiring Off";
                         PCS1.Error_bit[1, 8] = true;
-                        Mongo_error(Device_ID, err_msg, error_time);
+                        pcs_error(Device_ID, err_msg, error_time);
                     }
                 }
                 else if (a == 0)
@@ -1059,7 +1064,7 @@ namespace test_everything
                     {
                         err_msg = "CANA Wiring Off";
                         PCS1.Error_bit[1, 8] = false;
-                        Mongo_Reset(Device_ID, err_msg, error_time);
+                        pcs_recovery(Device_ID, err_msg, error_time);
                     }
                 }
                 ///////////////////////////////////////////////
@@ -1070,7 +1075,7 @@ namespace test_everything
                     {
                         err_msg = "CANB Wiring Off";
                         PCS1.Error_bit[1, 9] = true;
-                        Mongo_error(Device_ID, err_msg, error_time);
+                        pcs_error(Device_ID, err_msg, error_time);
                     }
                 }
                 else if (a == 0)
@@ -1079,7 +1084,7 @@ namespace test_everything
                     {
                         err_msg = "CANB Wiring Off";
                         PCS1.Error_bit[1, 9] = false;
-                        Mongo_Reset(Device_ID, err_msg, error_time);
+                        pcs_recovery(Device_ID, err_msg, error_time);
                     }
                 }
                 //////////////////////////////////////////////////
@@ -1090,7 +1095,7 @@ namespace test_everything
                     {
                         err_msg = "Phase-Locked Abnormal";
                         PCS1.Error_bit[1, 10] = true;
-                        Mongo_error(Device_ID, err_msg, error_time);
+                        pcs_error(Device_ID, err_msg, error_time);
                     }
                 }
                 else if (a == 0)
@@ -1099,7 +1104,7 @@ namespace test_everything
                     {
                         err_msg = "Phase-Locked Abnormal";
                         PCS1.Error_bit[1, 10] = false;
-                        Mongo_Reset(Device_ID, err_msg, error_time);
+                        pcs_recovery(Device_ID, err_msg, error_time);
                     }
                 }
                 ///////////////////////////////////////////
@@ -1110,7 +1115,7 @@ namespace test_everything
                 //    {
                 //        err_msg = "備用";
                 //        PCS1.Error_bit[1, 11] = true;
-                //        Mongo_error(Device_ID, err_msg, error_time);
+                //        pcs_error(Device_ID, err_msg, error_time);
                 //    }
                 //}
                 //else if (a == 0)
@@ -1119,7 +1124,7 @@ namespace test_everything
                 //    {
                 //        err_msg = "備用";
                 //        PCS1.Error_bit[1, 11] = false;
-                //        Mongo_error(Device_ID, err_msg, error_time);
+                //        pcs_error(Device_ID, err_msg, error_time);
                 //    }
                 //}
                 //////////////////////////////////////////////
@@ -1130,7 +1135,7 @@ namespace test_everything
                     {
                         err_msg = "Heat Sink Over Temperature";
                         PCS1.Error_bit[1, 12] = true;
-                        Mongo_error(Device_ID, err_msg, error_time);
+                        pcs_error(Device_ID, err_msg, error_time);
                     }
                 }
                 else if (a == 0)
@@ -1139,7 +1144,7 @@ namespace test_everything
                     {
                         err_msg = "Heat Sink Over Temperature";
                         PCS1.Error_bit[1, 12] = false;
-                        Mongo_Reset(Device_ID, err_msg, error_time);
+                        pcs_recovery(Device_ID, err_msg, error_time);
                     }
                 }
                 /////////////////////////////////////////////////////
@@ -1150,7 +1155,7 @@ namespace test_everything
                     {
                         err_msg = "Converter Hardware Over Current";
                         PCS1.Error_bit[1, 13] = true;
-                        Mongo_error(Device_ID, err_msg, error_time);
+                        pcs_error(Device_ID, err_msg, error_time);
                     }
                 }
                 else if (a == 0)
@@ -1159,7 +1164,7 @@ namespace test_everything
                     {
                         err_msg = "Converter Hardware Over Current";
                         PCS1.Error_bit[1, 13] = false;
-                        Mongo_Reset(Device_ID, err_msg, error_time);
+                        pcs_recovery(Device_ID, err_msg, error_time);
                     }
                 }
                 ////////////////////////////////////////////////////////
@@ -1170,7 +1175,7 @@ namespace test_everything
                     {
                         err_msg = "Drive Fault";
                         PCS1.Error_bit[1, 14] = true;
-                        Mongo_error(Device_ID, err_msg, error_time);
+                        pcs_error(Device_ID, err_msg, error_time);
                     }
                 }
                 else if (a == 0)
@@ -1179,7 +1184,7 @@ namespace test_everything
                     {
                         err_msg = "Drive Fault";
                         PCS1.Error_bit[1, 14] = false;
-                        Mongo_Reset(Device_ID, err_msg, error_time);
+                        pcs_recovery(Device_ID, err_msg, error_time);
                     }
                 }
                 ///////////////////////////////////////////////
@@ -1190,7 +1195,7 @@ namespace test_everything
                     {
                         err_msg = "PV Over Current";
                         PCS1.Error_bit[1, 15] = true;
-                        Mongo_error(Device_ID, err_msg, error_time);
+                        pcs_error(Device_ID, err_msg, error_time);
                     }
                 }
                 else if (a == 0)
@@ -1199,7 +1204,7 @@ namespace test_everything
                     {
                         err_msg = "PV Over Current";
                         PCS1.Error_bit[1, 15] = false;
-                        Mongo_Reset(Device_ID, err_msg, error_time);
+                        pcs_recovery(Device_ID, err_msg, error_time);
                     }
                 }
 
@@ -1216,7 +1221,7 @@ namespace test_everything
                     {
                         err_msg = "Battery Over Voltage";
                         PCS1.Error_bit[2, 0] = true;
-                        Mongo_error(Device_ID, err_msg, error_time);
+                        pcs_error(Device_ID, err_msg, error_time);
                     }
                 }
                 else if (a == 0)
@@ -1225,7 +1230,7 @@ namespace test_everything
                     {
                         err_msg = "Battery Over Voltage";
                         PCS1.Error_bit[2, 0] = false;
-                        Mongo_Reset(Device_ID, err_msg, error_time);
+                        pcs_recovery(Device_ID, err_msg, error_time);
                     }
                 }
                 /////////////////////////////////////////
@@ -1236,7 +1241,7 @@ namespace test_everything
                     {
                         err_msg = "Battery Light Load under Voltage ";
                         PCS1.Error_bit[2, 1] = true;
-                        Mongo_error(Device_ID, err_msg, error_time);
+                        pcs_error(Device_ID, err_msg, error_time);
                     }
                 }
                 else if (a == 0)
@@ -1245,7 +1250,7 @@ namespace test_everything
                     {
                         err_msg = "Battery Light Load under Voltage";
                         PCS1.Error_bit[2, 1] = false;
-                        Mongo_Reset(Device_ID, err_msg, error_time);
+                        pcs_recovery(Device_ID, err_msg, error_time);
                     }
                 }
                 /////////////////////////////////////
@@ -1256,7 +1261,7 @@ namespace test_everything
                     {
                         err_msg = "DC Over Current";
                         PCS1.Error_bit[2, 2] = true;
-                        Mongo_error(Device_ID, err_msg, error_time);
+                        pcs_error(Device_ID, err_msg, error_time);
                     }
                 }
                 else if (a == 0)
@@ -1265,7 +1270,7 @@ namespace test_everything
                     {
                         err_msg = "DC Over Current";
                         PCS1.Error_bit[2, 2] = false;
-                        Mongo_Reset(Device_ID, err_msg, error_time);
+                        pcs_recovery(Device_ID, err_msg, error_time);
                     }
                 }
                 ///////////////////////////////////////
@@ -1276,7 +1281,7 @@ namespace test_everything
                     {
                         err_msg = "Ouput Voltage Abnornal";
                         PCS1.Error_bit[2, 3] = true;
-                        Mongo_error(Device_ID, err_msg, error_time);
+                        pcs_error(Device_ID, err_msg, error_time);
                     }
                 }
                 else if (a == 0)
@@ -1285,7 +1290,7 @@ namespace test_everything
                     {
                         err_msg = "Ouput Voltage Abnornal";
                         PCS1.Error_bit[2, 3] = false;
-                        Mongo_Reset(Device_ID, err_msg, error_time);
+                        pcs_recovery(Device_ID, err_msg, error_time);
                     }
                 }
                 /////////////////////////////////////////
@@ -1296,7 +1301,7 @@ namespace test_everything
                     {
                         err_msg = "Output Voltage unsatisfied Off Grid Condition";
                         PCS1.Error_bit[2, 4] = true;
-                        Mongo_error(Device_ID, err_msg, error_time);
+                        pcs_error(Device_ID, err_msg, error_time);
                     }
                 }
                 else if (a == 0)
@@ -1305,7 +1310,7 @@ namespace test_everything
                     {
                         err_msg = "Output Voltage unsatisfied Off Grid Condition";
                         PCS1.Error_bit[2, 4] = false;
-                        Mongo_Reset(Device_ID, err_msg, error_time);
+                        pcs_recovery(Device_ID, err_msg, error_time);
                     }
                 }
                 /////////////////////////////
@@ -1316,7 +1321,7 @@ namespace test_everything
                     {
                         err_msg = "Over Current Protection";
                         PCS1.Error_bit[2, 5] = true;
-                        Mongo_error(Device_ID, err_msg, error_time);
+                        pcs_error(Device_ID, err_msg, error_time);
                     }
                 }
                 else if (a == 0)
@@ -1325,7 +1330,7 @@ namespace test_everything
                     {
                         err_msg = "Over Current Protection";
                         PCS1.Error_bit[2, 5] = false;
-                        Mongo_Reset(Device_ID, err_msg, error_time);
+                        pcs_recovery(Device_ID, err_msg, error_time);
                     }
                 }
                 /////////////////////////////////////////////
@@ -1336,7 +1341,7 @@ namespace test_everything
                     {
                         err_msg = "Short Protection";
                         PCS1.Error_bit[2, 6] = true;
-                        Mongo_error(Device_ID, err_msg, error_time);
+                        pcs_error(Device_ID, err_msg, error_time);
                     }
                 }
                 else if (a == 0)
@@ -1345,7 +1350,7 @@ namespace test_everything
                     {
                         err_msg = "Short Protection";
                         PCS1.Error_bit[2, 6] = false;
-                        Mongo_Reset(Device_ID, err_msg, error_time);
+                        pcs_recovery(Device_ID, err_msg, error_time);
                     }
                 }
                 //////////////////////////////////////
@@ -1356,7 +1361,7 @@ namespace test_everything
                     {
                         err_msg = "Communication Line Abnormal Protection";
                         PCS1.Error_bit[2, 7] = true;
-                        Mongo_error(Device_ID, err_msg, error_time);
+                        pcs_error(Device_ID, err_msg, error_time);
                     }
                 }
                 else if (a == 0)
@@ -1365,7 +1370,7 @@ namespace test_everything
                     {
                         err_msg = "Communication Line Abnormal Protection";
                         PCS1.Error_bit[2, 7] = false;
-                        Mongo_Reset(Device_ID, err_msg, error_time);
+                        pcs_recovery(Device_ID, err_msg, error_time);
                     }
                 }
                 /////////////////////////////////////////////
@@ -1376,7 +1381,7 @@ namespace test_everything
                     {
                         err_msg = "DC Fuse Disconnenct";
                         PCS1.Error_bit[2, 8] = true;
-                        Mongo_error(Device_ID, err_msg, error_time);
+                        pcs_error(Device_ID, err_msg, error_time);
                     }
                 }
                 else if (a == 0)
@@ -1385,7 +1390,7 @@ namespace test_everything
                     {
                         err_msg = "DC Fuse Disconnenct";
                         PCS1.Error_bit[2, 8] = false;
-                        Mongo_Reset(Device_ID, err_msg, error_time);
+                        pcs_recovery(Device_ID, err_msg, error_time);
                     }
                 }
                 ///////////////////////////////////////////////
@@ -1396,7 +1401,7 @@ namespace test_everything
                     {
                         err_msg = "Battery Heavy load Under Voltage";
                         PCS1.Error_bit[2, 9] = true;
-                        Mongo_error(Device_ID, err_msg, error_time);
+                        pcs_error(Device_ID, err_msg, error_time);
                     }
                 }
                 else if (a == 0)
@@ -1405,7 +1410,7 @@ namespace test_everything
                     {
                         err_msg = "Battery Heavy load Under Voltage";
                         PCS1.Error_bit[2, 9] = false;
-                        Mongo_Reset(Device_ID, err_msg, error_time);
+                        pcs_recovery(Device_ID, err_msg, error_time);
                     }
                 }
                 //////////////////////////////////////////////////
@@ -1416,7 +1421,7 @@ namespace test_everything
                     {
                         err_msg = "Battey Under Voltage Warning";
                         PCS1.Error_bit[2, 10] = true;
-                        Mongo_error(Device_ID, err_msg, error_time);
+                        pcs_error(Device_ID, err_msg, error_time);
                     }
                 }
                 else if (a == 0)
@@ -1425,7 +1430,7 @@ namespace test_everything
                     {
                         err_msg = "Battey Under Voltage Warning";
                         PCS1.Error_bit[2, 10] = false;
-                        Mongo_Reset(Device_ID, err_msg, error_time);
+                        pcs_recovery(Device_ID, err_msg, error_time);
                     }
                 }
                 ///////////////////////////////////////////
@@ -1436,7 +1441,7 @@ namespace test_everything
                     {
                         err_msg = "Main Detector Power Abnormal";
                         PCS1.Error_bit[2, 11] = true;
-                        Mongo_error(Device_ID, err_msg, error_time);
+                        pcs_error(Device_ID, err_msg, error_time);
                     }
                 }
                 else if (a == 0)
@@ -1445,7 +1450,7 @@ namespace test_everything
                     {
                         err_msg = "Main Detector Power Abnormal";
                         PCS1.Error_bit[2, 11] = false;
-                        Mongo_Reset(Device_ID, err_msg, error_time);
+                        pcs_recovery(Device_ID, err_msg, error_time);
                     }
                 }
                 //////////////////////////////////////////////
@@ -1456,7 +1461,7 @@ namespace test_everything
                     {
                         err_msg = "Battery Discharge Under Voltage Protection";
                         PCS1.Error_bit[2, 12] = true;
-                        Mongo_error(Device_ID, err_msg, error_time);
+                        pcs_error(Device_ID, err_msg, error_time);
                     }
                 }
                 else if (a == 0)
@@ -1465,7 +1470,7 @@ namespace test_everything
                     {
                         err_msg = "Battery Discharge Under Voltage Protection";
                         PCS1.Error_bit[2, 12] = false;
-                        Mongo_Reset(Device_ID, err_msg, error_time);
+                        pcs_recovery(Device_ID, err_msg, error_time);
                     }
                 }
                 /////////////////////////////////////////////////////
@@ -1476,7 +1481,7 @@ namespace test_everything
                     {
                         err_msg = "Battery Voltage unsatisfy Charge Condition";
                         PCS1.Error_bit[2, 13] = true;
-                        Mongo_error(Device_ID, err_msg, error_time);
+                        pcs_error(Device_ID, err_msg, error_time);
                     }
                 }
                 else if (a == 0)
@@ -1485,7 +1490,7 @@ namespace test_everything
                     {
                         err_msg = "Battery Voltage unsatisfy Charge Condition";
                         PCS1.Error_bit[2, 13] = false;
-                        Mongo_Reset(Device_ID, err_msg, error_time);
+                        pcs_recovery(Device_ID, err_msg, error_time);
                     }
                 }
                 ////////////////////////////////////////////////////////
@@ -1496,7 +1501,7 @@ namespace test_everything
                     {
                         err_msg = "Over Load Warning";
                         PCS1.Error_bit[2, 14] = true;
-                        Mongo_error(Device_ID, err_msg, error_time);
+                        pcs_error(Device_ID, err_msg, error_time);
                     }
                 }
                 else if (a == 0)
@@ -1505,7 +1510,7 @@ namespace test_everything
                     {
                         err_msg = "Over Load Warning";
                         PCS1.Error_bit[2, 14] = false;
-                        Mongo_Reset(Device_ID, err_msg, error_time);
+                        pcs_recovery(Device_ID, err_msg, error_time);
                     }
                 }
                 ///////////////////////////////////////////////
@@ -1517,7 +1522,7 @@ namespace test_everything
                     {
                         err_msg = "External Detector Fault";
                         PCS1.Error_bit[2, 15] = true;
-                        Mongo_error(Device_ID, err_msg, error_time);
+                        pcs_error(Device_ID, err_msg, error_time);
                     }
                 }
                 else if (a == 0)
@@ -1526,7 +1531,7 @@ namespace test_everything
                     {
                         err_msg = "External Detector Fault";
                         PCS1.Error_bit[2, 15] = false;
-                        Mongo_Reset(Device_ID, err_msg, error_time);
+                        pcs_recovery(Device_ID, err_msg, error_time);
                     }
                 }
 
@@ -1534,23 +1539,29 @@ namespace test_everything
             #endregion                       
             PCS1.Errorbit2ushort[2] = PCS1.Error3;
         }
-        //Mongo_error Mongo_Reset這兩個副程式是因為 PCS_Error_log裡面有但是不需要用到 所以隨便應付 
-        private void Mongo_error(string Device_ID, string err_msg, DateTime error_time)
+        //pcs_error pcs_recovery這兩個副程式是因為 PCS_Error_log裡面有但是不需要用到 所以隨便應付 
+        private void pcs_error(string Device_ID, string err_msg, DateTime error_time)
         {
-            Debug.Print(" Mongo_error");
+            lv_Print(listView1, error_time.ToString(), err_msg);
+            Debug.Print(" pcs_error");
         }
-        private void Mongo_Reset(string Slave, string error_msg, DateTime time)
+        private void pcs_recovery(string Slave, string error_msg, DateTime time)
         {
-            Debug.Print(" Mongo_Reset");
+            lv_Print(listView1, time.ToString(), error_msg+ "recovery");
+            Debug.Print(" pcs_recovery");
         }
 
         private void bt_test_read_pcs_Click(object sender, EventArgs e)
         {
+            
+            // 應該要開平行緒 
+            Thread oThreadA = new Thread(new ThreadStart(Read_PCS));          //讀取COM1            
+            oThreadA.Start();
+        }
+        private void Read_PCS()
+        {
             DateTime time_now = DateTime.Now;
-            Read_PCS_Kehua("1","1",PCS_TEST_everthing,ref time_now);
-            Debug.Print(PCS_TEST_everthing.Error1.ToString()); //5002
-            Debug.Print(PCS_TEST_everthing.Error2.ToString());
-            Debug.Print(PCS_TEST_everthing.Error3.ToString());
+            Read_PCS_Kehua("1", "1", PCS_TEST_everthing, ref time_now); // 包含把資料送到pcs的變數 
         }
         ThreadingTimer _ThreadTimer = null;
         ThreadingTimer _ThreadTimer2 = null;
