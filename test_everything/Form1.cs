@@ -31,7 +31,9 @@ namespace test_everything
         List<Class1> school = new List<Class1>();
         private PCS PCS_TEST_everthing = new PCS();
 
-
+        //電網變數
+        static double grid_f = 0;
+        static double grid_v=0;
         //不是我的
         List<TextBox> listAI = new List<TextBox>();
         List<TextBox> listAO = new List<TextBox>();
@@ -42,10 +44,114 @@ namespace test_everything
         {
             InitializeComponent();
             bt_test_read_pcs.Enabled = false;
+            InitialListView();
+            textBox_q.Enabled = false;
+            textBox_p.Enabled = false;
         }
-        private void bt_test_class_Click(object sender, EventArgs e)
+        private void InitialListView()//初始化ListView的格式大小 
         {
-            aaaaaaa.num_people = 10;
+            listView1.View = View.Details;
+            listView1.GridLines = true;
+            listView1.LabelEdit = false;
+            listView1.FullRowSelect = true;
+            listView1.Columns.Add("time", 150);
+            listView1.Columns.Add("message",200);
+            //雙緩衝
+            listView1.GetType().GetProperty("DoubleBuffered", System.Reflection.BindingFlags.Instance
+   | System.Reflection.BindingFlags.NonPublic).SetValue(listView1, true, null);
+        }
+
+        #region 控制項委派用
+        public delegate void Listview_Print(ListView list, string time, string message);//time type 沒改
+        public delegate void lPrintHandler(Label label, string text);
+        public static void l_Print(Label tb, string text)
+        {
+            //判斷這個TextBox的物件是否在同一個執行緒上
+            if (tb.InvokeRequired)
+            {
+                lPrintHandler ph = new lPrintHandler(l_Print);
+                tb.Invoke(ph, tb, text);
+            }
+            else
+            {
+                tb.Text = text;
+            }
+        }
+        public static void lv_Print(ListView list, string time, string message)// 輸入listview ,兩個str
+        {
+            //判斷這個TextBox的物件是否在同一個執行緒上
+            if (list.InvokeRequired)
+            {
+                Listview_Print ph = new Listview_Print(lv_Print);
+                list.Invoke(ph, list, time, message);
+            }
+            else
+            {
+                String[] row = { time, message };
+                ListViewItem item = new ListViewItem(row);
+                //ADD ITEMS
+                list.Items.Add(item);
+                if (list.Items.Count > 1000)
+                {
+                    list.Items.RemoveAt(1);
+                }
+            }
+        }
+        public static void lv_Print(ListView list,string message)// 輸入listview ,兩個str
+        {
+            String time = DateTime.Now.ToString();
+            //判斷這個TextBox的物件是否在同一個執行緒上
+            if (list.InvokeRequired)
+            {
+                Listview_Print ph = new Listview_Print(lv_Print);
+                list.Invoke(ph, list, time, message);
+            }
+            else
+            {
+                String[] row = { time, message };
+                ListViewItem item = new ListViewItem(row);
+                //ADD ITEMS
+                list.Items.Add(item);
+                if (list.Items.Count > 1000)
+                {
+                    list.Items.RemoveAt(1);
+                }
+            }
+        }
+        #endregion
+        private void bt_test_fp_Click(object sender, EventArgs e)
+        {
+            //設定工作點  
+            FR_Hys_Control.f1_set = 59;
+            FR_Hys_Control.f2_set =59.3 ;
+            FR_Hys_Control.f3_set = 60.9;
+            FR_Hys_Control.f4_set = 61;
+            FR_Hys_Control.f5_set = 60.7;
+            FR_Hys_Control.f6_set = 59.1;
+            FR_Hys_Control.p1_set = 100; //百分比功率好像是直接那樣寫
+            FR_Hys_Control.p2_set = 90;
+            FR_Hys_Control.p3_set = -90;
+            FR_Hys_Control.p4_set = -100;
+            FR_Hys_Control.p5_set = -90;
+            FR_Hys_Control.p6_set = 90;
+            FR_Hys_Control.p_base = 250;
+            double grid_f = 60;
+            control_mode.fp_Hys_control(grid_f);
+            lv_Print(listView1, DateTime.Now.ToString(), Grid_Control.p_diff.ToString());    //輸出功率 
+            for (int i= 0; i <10;i++)
+            {
+                grid_f +=  0.1;
+                control_mode.fp_Hys_control(grid_f);
+                lv_Print(listView1, DateTime.Now.ToString(), grid_f+"hz  "+ Grid_Control.p_diff.ToString()+"w");    //輸出功率 
+            }
+            for (int i = 0; i < 20; i++)
+            {
+                grid_f -= 0.1;
+                control_mode.fp_Hys_control(grid_f);
+                lv_Print(listView1, DateTime.Now.ToString(), grid_f + "hz  " + Grid_Control.p_diff.ToString() + "w");    //輸出功率 
+            }
+            #region 不會用到    測試可以比較的物件 
+            /*aaaaaaa.num_people = 10;
             bbbbbbb.num_people = 20;
             school.Add(bbbbbbb);
             school.Add(aaaaaaa);
@@ -59,8 +165,8 @@ namespace test_everything
                 Debug.Print(item.teacher_name);
             }
             //Debug.Print( school.ToString());
-
-
+            */
+            #endregion
         }
         //可以在副程式之外  創立物件 
 
@@ -78,6 +184,7 @@ namespace test_everything
                 serialPort.Open();
                 master_test_everthing = ModbusSerialMaster.CreateRtu(serialPort);
                 Debug.Print(DateTime.Now.ToString() + " =>Open " + serialPort.PortName + " sucessfully!");
+                lv_Print(listView1, DateTime.Now.ToString(), " =>Open " + serialPort.PortName + " sucessfully!");
             }
             catch
             {
@@ -99,6 +206,7 @@ namespace test_everything
             catch(Exception ex)
             {
                 Debug.Print("modbus Exception"+ ex.Message);
+                lv_Print(listView1, DateTime.Now.ToString(), "modbus Exception" + ex.Message);
             }
 
             bt_test_read_pcs.Enabled = true;
@@ -312,8 +420,7 @@ namespace test_everything
             Debug.Print(listAO.ToString());
         }
         
-        ThreadingTimer _ThreadTimer = null;
-        ThreadingTimer _ThreadTimer2 = null;
+
         //Thread oThreadA = new Thread(new ThreadStart(Read_PCS));  
         // ???  不能夠開一個平行緒  Thread wait = new Thread(new ThreadStart(bt_test_thead_Click)); 
         /*要傳入的變數 ,延遲多久開始執行,  每隔多久執行一次  ，所以應該是開一個平行緒一直重複的在做這些事情 
@@ -460,7 +567,7 @@ namespace test_everything
                     {
                         err_msg = "Insulation Fault";
                         PCS1.Error_bit[0, 0] = true;
-                        Mongo_error(Device_ID, err_msg, error_time);
+                        Mongo_error(Device_ID, err_msg, error_time); //故障代碼要映射到對應的暫存器 
                     }
                 }
                 else if (a == 0)
@@ -1444,6 +1551,183 @@ namespace test_everything
             Debug.Print(PCS_TEST_everthing.Error1.ToString()); //5002
             Debug.Print(PCS_TEST_everthing.Error2.ToString());
             Debug.Print(PCS_TEST_everthing.Error3.ToString());
+        }
+        ThreadingTimer _ThreadTimer = null;
+        ThreadingTimer _ThreadTimer2 = null;
+        private void bt_test_timer_Click(object sender, EventArgs e)
+        {
+            //建立代理物件TimerCallback，該代理將被定時呼叫
+            //TimerCallback timerDelegate = new TimerCallback(pprint);
+            string currentName = new StackTrace(true).GetFrame(0).GetMethod().Name; //取得現在副程式的名稱 
+            //this._ThreadTimer2 = new ThreadingTimer(new System.Threading.TimerCallback(bt_test_thead_Click), currentName, 0, 1000);
+            pprint();
+            Debug.Print(currentName);
+            DateTime dd = DateTime.Now;
+            lv_Print(listView1,dd.ToString(), currentName);
+            
+    
+        }
+        private void pprint()
+        {
+            DateTime dt = DateTime.Now;
+            Debug.Print(dt.ToString());
+        }
+
+        private void bt_test_vq_Click(object sender, EventArgs e)
+        {
+            //設定工作點  
+            Vq_Control.q_base =200;
+            Vq_Control.v_base =380;
+            Vq_Control.v1_set =95;
+            Vq_Control.v2_set =97;
+            Vq_Control.v3_set =104;
+            Vq_Control.v4_set =105;
+            Vq_Control.v5_set =103;
+            Vq_Control.v6_set =96;
+            Vq_Control.q1_set =100;
+            Vq_Control.q2_set =80;
+            Vq_Control.q3_set =-80;
+            Vq_Control.q4_set =-100;
+            Vq_Control.q5_set =-80;
+            Vq_Control.q6_set =80;
+            double grid_v = 380;   //361-399
+            control_mode.Vq_control(grid_v,true);
+            lv_Print(listView1, DateTime.Now.ToString(), Vq_Control.q_tr.ToString());    //輸出
+            for (int i = 0; i < 10; i++)
+            {
+                grid_v += 1.8;
+                control_mode.Vq_control(grid_v, true);
+                lv_Print(listView1, DateTime.Now.ToString(), grid_v + "v  " + Vq_Control.q_tr.ToString() + "var");    //輸出
+            }
+            for (int i = 0; i < 20; i++)
+            {
+                grid_v -= 1.8;
+                control_mode.Vq_control(grid_v, true);
+                lv_Print(listView1, DateTime.Now.ToString(), grid_v + "v  " + Vq_Control.q_tr.ToString() + "var");    //輸出
+            }
+        }
+
+        private void radioButton1_CheckedChanged(object sender, EventArgs e)
+        {
+            textBox_p.Enabled = true;
+            textBox_q.Enabled = true;
+            tmfp.Enabled = false;
+            tm_vq.Enabled = false;
+        }
+
+        private void radioButton2_CheckedChanged(object sender, EventArgs e)
+        {
+            tmfp.Enabled = true;
+            tm_vq.Enabled = false;
+            #region  f-p設定點
+            FR_Hys_Control.f1_set = 59;
+            FR_Hys_Control.f2_set = 59.3;
+            FR_Hys_Control.f3_set = 60.9;
+            FR_Hys_Control.f4_set = 61;
+            FR_Hys_Control.f5_set = 60.7;
+            FR_Hys_Control.f6_set = 59.1;
+            FR_Hys_Control.p1_set = 100; //百分比功率好像是直接那樣寫
+            FR_Hys_Control.p2_set = 90;
+            FR_Hys_Control.p3_set = -90;
+            FR_Hys_Control.p4_set = -100;
+            FR_Hys_Control.p5_set = -90;
+            FR_Hys_Control.p6_set = 90;
+            FR_Hys_Control.p_base = 250;
+            double grid_f = 60;
+            #endregion
+            
+        }
+        private void radioButton3_CheckedChanged(object sender, EventArgs e)
+        {
+            tmfp.Enabled = false;
+            tm_vq.Enabled = true;
+            #region v-q設定點
+            Vq_Control.q_base = 200;
+            Vq_Control.v_base = 380;
+            Vq_Control.v1_set = 95;
+            Vq_Control.v2_set = 97;
+            Vq_Control.v3_set = 104;
+            Vq_Control.v4_set = 105;
+            Vq_Control.v5_set = 103;
+            Vq_Control.v6_set = 96;
+            Vq_Control.q1_set = 100;
+            Vq_Control.q2_set = 80;
+            Vq_Control.q3_set = -80;
+            Vq_Control.q4_set = -100;
+            Vq_Control.q5_set = -80;
+            Vq_Control.q6_set = 80;
+            double grid_v = 380;   //361-399
+            #endregion
+
+        }
+
+
+        private void textBox_p_TextChanged(object sender, EventArgs e)
+        {
+            try
+            {
+                master_test_everthing.WriteSingleRegister(1, 6006, Convert.ToUInt16(textBox_p.Text)); //p   //寫入暫存器
+            }
+            catch
+            {
+                lv_Print(listView1, "Cant write p ");
+            }
+        
+        }
+
+        private void textBox_q_TextChanged(object sender, EventArgs e)
+        {
+            
+            try
+            {
+                master_test_everthing.WriteSingleRegister(1, 6003, Convert.ToUInt16(textBox_q.Text)); //q   //寫入暫存器
+            }
+            catch
+            {
+                lv_Print(listView1, "Cant write q");
+            }
+        }
+        private void button2_Click(object sender, EventArgs e)
+        {
+
+        }
+        
+        private void tmfp_Tick(object sender, EventArgs e)
+        {
+            
+            grid_f = PCS_TEST_everthing.F_grid;
+            control_mode.fp_Hys_control(grid_f);
+            master_test_everthing.WriteSingleRegister(1, 6003, (ushort)Grid_Control.p_diff); //q
+        }
+        private void tm_vq_Tick(object sender, EventArgs e)
+        {
+            grid_v = (PCS_TEST_everthing.V_grid1 + PCS_TEST_everthing.V_grid2 + PCS_TEST_everthing.V_grid3) / 3;
+            control_mode.Vq_control(grid_v, true);
+            master_test_everthing.WriteSingleRegister(1, 6003, (ushort)Vq_Control.q_tr); //q
+        }
+        private void stroe_code()
+        {
+            //PCS實功和虛功皆設定為0
+            byte id = 1;
+            master_test_everthing.WriteSingleRegister(id, 6006, 0); //p
+            Thread.Sleep(500);
+            master_test_everthing.WriteSingleRegister(id, 6003, 0); //q
+            Thread.Sleep(2500);
+            //有特定的等待時間限制嗎 
+
+
+            //4179 master_PCS.WriteSingleRegister(id, 6001, (ushort)PV_Command.SelectedIndex);
+            master_test_everthing.WriteSingleRegister(id, 6001, 1); //開機
+            master_test_everthing.WriteSingleRegister(id, 6005, 1); //????
+            master_test_everthing.WriteSingleRegister(id, 6007, 1); //孤島模式 
+            master_test_everthing.WriteSingleRegister(id, 6009, 1); //遠端模式 
+            
+
+        }
+
+        private void label1_Click(object sender, EventArgs e)
+        {
+
         }
     }
 }

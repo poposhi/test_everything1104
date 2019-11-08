@@ -21,8 +21,8 @@ namespace test_everything
             teacher_name = name;
         }
 
- 
-    }
+
+    } //拿來練習用的 
     public class Serial_port   //串列連線設定檔 
                                //應該是在儲存串列通訊的參數
     {

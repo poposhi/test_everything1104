@@ -56,6 +56,12 @@
   <ItemGroup>
     <Compile Include="Class1.cs" />
     <Compile Include="control_mode.cs" />
+    <Compile Include="DV750V.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="DV750V.Designer.cs">
+      <DependentUpon>DV750V.cs</DependentUpon>
+    </Compile>
     <Compile Include="Form1.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -70,6 +76,9 @@
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <EmbeddedResource Include="DV750V.resx">
+      <DependentUpon>DV750V.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="ff2.resx">
       <DependentUpon>ff2.cs</DependentUpon>
     </EmbeddedResource>
