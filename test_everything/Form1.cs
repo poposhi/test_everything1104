@@ -422,15 +422,17 @@ namespace test_everything
         private void timer2_Tick(object sender, EventArgs e)
         {
             Debug.Print(listAO.ToString());
+            string currentName = new StackTrace(true).GetFrame(0).GetMethod().Name;
+            //this._ThreadTimer = new ThreadingTimer(new System.Threading.TimerCallback(a_print), currentName, 0, 100);
+            //this._ThreadTimer2 = new ThreadingTimer(new System.Threading.TimerCallback(bt_test_thead_Click), currentName, 0, 1000);
         }
 
 
         //Thread oThreadA = new Thread(new ThreadStart(Read_PCS));  
         // ???  不能夠開一個平行緒  Thread wait = new Thread(new ThreadStart(bt_test_thead_Click)); 
-        /* 要傳入的變數 ,延遲多久開始執行,  每隔多久執行一次  ，所以應該是開一個平行緒一直重複的在做這些事情 
-       this._ThreadTimer = new ThreadingTimer(new System.Threading.TimerCallback(Site_Controller_Operation), currentName, 0, 100);
-           this._ThreadTimer2 = new ThreadingTimer(new System.Threading.TimerCallback(Data_Show), currentName, 0, 1000);
-        */
+        // 要傳入的變數 ,延遲多久開始執行,  每隔多久執行一次  ，所以應該是開一個平行緒一直重複的在做這些事情 
+   
+        
         private void bt_test_thead_Click(object sender, EventArgs e)
         {
             Debug.Print("into bt_test_thead_Click") ;
@@ -464,7 +466,7 @@ namespace test_everything
                 try
                 {//
                     byte id = byte.Parse(Port_ID);
-                    Device.Holding_register = master_test_everthing.ReadInputRegisters(id, 5001, 53); // 讀取大部分的資料 
+                    Device.Holding_register = master_test_everthing.ReadInputRegisters(id, 5000, 54); // 讀取大部分的資料  從5001開始
                     time_now = DateTime.Now; //更新現在時間 
                     Device.Put_Data1(); //根據地址轉換資料並且放入相對應的變數 (地址轉文字)
                     PCS_Error_log(Device.Device_ID, time_now, PCS_TEST_everthing);

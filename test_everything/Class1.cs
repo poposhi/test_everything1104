@@ -65,7 +65,7 @@ namespace test_everything
         private double count = 0;
         private bool ems_flag = false;      //判斷是否缺值
         private int ems_error = 0;
-        private ushort[] holding_register = new ushort[53];
+        private ushort[] holding_register = new ushort[54];
         private ushort error1 = 0;
         private ushort error2 = 0;
         private ushort error3 = 0;
@@ -186,23 +186,23 @@ namespace test_everything
         }
         public void Put_Data1() //把讀取到的資料 放到相應的變數 
         {
-            status_operation = holding_register[0]; //5001
-            Error1 = holding_register[1];
+            status_operation = holding_register[0]; //對應地址5001
+            Error1 = holding_register[1]; // 對應地址5002 
             Error2 = holding_register[2];
             Error3 = holding_register[3];
             Error4 = holding_register[4];
-            v_grid1 = Negative_num(holding_register[5]) * 0.1;//電壓電流應該不會有負數吧 
-            v_grid2 = Negative_num(holding_register[6]) * 0.1;
-            v_grid3 = Negative_num(holding_register[7]) * 0.1;
-            v_out1 = Negative_num(holding_register[8]) * 0.1;
-            v_out2 = Negative_num(holding_register[9]) * 0.1;
-            v_out3 = Negative_num(holding_register[10]) * 0.1;
-            i_out1 = Negative_num(holding_register[11]) * 0.1;
-            i_out2 = Negative_num(holding_register[12]) * 0.1;
-            i_out3 = Negative_num(holding_register[13]) * 0.1;
+            v_grid1 = (holding_register[5]) * 0.1;//電壓電流應該不會有負數吧 
+            v_grid2 = (holding_register[6]) * 0.1;
+            v_grid3 = (holding_register[7]) * 0.1;
+            v_out1 = (holding_register[8]) * 0.1;
+            v_out2 = (holding_register[9]) * 0.1;
+            v_out3 = (holding_register[10]) * 0.1;
+            i_out1 = (holding_register[11]) * 0.1;
+            i_out2 = (holding_register[12]) * 0.1;
+            i_out3 = (holding_register[13]) * 0.1;
             f_offgrid = holding_register[14] * 0.01;
             f_grid = holding_register[15] * 0.01;
-            i_n = Negative_num(holding_register[16]) * 0.1;
+            i_n = (holding_register[16]) * 0.1;
             temp_inner = Negative_num(holding_register[17]) * 0.1;
             temp_sink = Negative_num(holding_register[18]) * 0.1;
             v_dc = holding_register[19] * 0.1;
