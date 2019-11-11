@@ -1604,8 +1604,8 @@ namespace test_everything
             Vq_Control.q5_set =-80;
             Vq_Control.q6_set =80;
             double grid_v = 380;   //361-399
-            control_mode.Vq_control(grid_v,true);
-            lv_Print(listView1, DateTime.Now.ToString(), Vq_Control.q_tr.ToString());    //輸出
+            control_mode.Vq_control(grid_v,true);  ////輸入電壓會修改q輸出 
+            //lv_Print(listView1, DateTime.Now.ToString(), Vq_Control.q_tr.ToString());    //輸出
             for (int i = 0; i < 10; i++)
             {
                 grid_v += 1.8;
@@ -1702,21 +1702,55 @@ namespace test_everything
         }
         private void button2_Click(object sender, EventArgs e)
         {
+            //按下按鈕後寫入 pq
+            byte id = 1;
+            try
+            {
+                ushort pp, qq;
+                pp =Convert.ToUInt16(textBox_p.Text);
+                qq = Convert.ToUInt16(textBox_q.Text);
+                master_test_everthing.WriteSingleRegister(id, 6005, pp); //p 寫入 46006 
+                Thread.Sleep(500);
+                master_test_everthing.WriteSingleRegister(id, 6002, qq); //q
+            }
+            catch { lv_Print(listView1, "寫入 pq 錯誤"); }
 
         }
         
         private void tmfp_Tick(object sender, EventArgs e)
         {
-            
-            grid_f = PCS_TEST_everthing.F_grid;
-            control_mode.fp_Hys_control(grid_f);
-            master_test_everthing.WriteSingleRegister(1, 6003, (ushort)Grid_Control.p_diff); //q
+
+            try
+            {
+                Thread oThreadA = new Thread(new ThreadStart(Read_PCS));          //讀取COM1            
+                oThreadA.Start();
+                
+                control_mode.fp_Hys_control(PCS_TEST_everthing.F_grid);
+                master_test_everthing.WriteSingleRegister(1, 6005, (ushort)Grid_Control.p_diff); //p
+
+            }
+            catch
+            {
+                lv_Print(listView1, "tmfp_Tick error");
+            }
         }
         private void tm_vq_Tick(object sender, EventArgs e)
         {
-            grid_v = (PCS_TEST_everthing.V_grid1 + PCS_TEST_everthing.V_grid2 + PCS_TEST_everthing.V_grid3) / 3;
-            control_mode.Vq_control(grid_v, true);
-            master_test_everthing.WriteSingleRegister(1, 6003, (ushort)Vq_Control.q_tr); //q
+            try
+            {
+                Thread oThreadA = new Thread(new ThreadStart(Read_PCS));          //讀取COM1            
+                oThreadA.Start();
+                grid_v = (PCS_TEST_everthing.V_grid1 + PCS_TEST_everthing.V_grid2 + PCS_TEST_everthing.V_grid3) / 3;
+                control_mode.Vq_control(grid_v, true);
+                master_test_everthing.WriteSingleRegister(1, 6002, (ushort)Vq_Control.q_tr); //q
+                
+            }
+            catch 
+            {
+                lv_Print(listView1, "tm_vq_Tick error");
+            }
+            
+            
         }
         private void stroe_code()
         {

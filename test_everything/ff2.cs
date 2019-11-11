@@ -26,7 +26,7 @@ namespace test_everything
         {
             timer1.Interval = 1000;
             timer1.Enabled = true;
-            F_off_grid.Text = PCS1.F_offgrid.ToString() + "Hz"; F_grid.Text = PCS1.F_grid.ToString() + "Hz";
+            F_off_grid.Text = PCS1.F_offgrid.ToString() + "Hz"; F_grid.Text = PCS1.F_grid.ToString("#0.00") + "Hz";
             V1_grid.Text = PCS1.V_grid1.ToString() + "V"; V2_grid.Text = PCS1.V_grid2.ToString() + "V";
             V3_gird.Text = PCS1.V_grid3.ToString() + "V"; V_dc.Text = PCS1.V_dc.ToString() + "V";
             I_dc.Text = PCS1.I_dc.ToString() + "A"; P_dc.Text = PCS1.P_dc.ToString() + "A";
