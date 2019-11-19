@@ -29,7 +29,7 @@ namespace test_everything
         private Class1 aaaaaaa = new Class1("amy");
         private Class1 bbbbbbb = new Class1("babe");
         List<Class1> school = new List<Class1>();
-        private PCS PCS_TEST_everthing = new PCS();
+        private PCS PCS_Kehua = new PCS();
 
         //電網變數
         static double grid_f = 0;
@@ -177,7 +177,7 @@ namespace test_everything
             #region rtu 連線
             try
             {
-                serialPort.PortName = "COM3";
+                serialPort.PortName = "COM5";
                 serialPort.BaudRate = 9600;
                 serialPort.DataBits = 8;
                 serialPort.Parity = Parity.None;
@@ -204,8 +204,6 @@ namespace test_everything
                 master_test_everthing.Transport.ReadTimeout = 300; //milliseconds
                                                     //master.ReadHoldingRegisters(1, startAddress, numofPoints);
                 master_test_everthing.WriteSingleRegister(1, 6008, 555); //結果會寫入46009 
-                byte slaveID = 1;
-                ushort startAddress = 1, vvalue = 1;
             }
             catch(Exception ex)
             {
@@ -221,9 +219,10 @@ namespace test_everything
         }
         private void bt_read_Click(object sender, EventArgs e)
         {
-            ushort[] a;
-            a=master_test_everthing.ReadHoldingRegisters(1,2,1);
-            Debug.Print(a[0].ToString());
+            lv_Print(listView1, System.Configuration.ConfigurationManager.AppSettings["test_key"]);
+            //ushort[] a;
+            //a=master_test_everthing.ReadHoldingRegisters(1,2,1);
+            //Debug.Print(a[0].ToString());
             
         }
         //
@@ -244,7 +243,7 @@ namespace test_everything
                 }
                 if (Isopen == false) //假如還沒有打開這個視窗，就把他打開並且畫面置中
                 {
-                    using (var frm = new ff2(PCS_TEST_everthing))
+                    using (var frm = new ff2(PCS_Kehua))
                     {
                         frm.StartPosition = FormStartPosition.CenterParent;   /////顯示畫面置中
                         frm.ShowDialog();
@@ -469,7 +468,7 @@ namespace test_everything
                     Device.Holding_register = master_test_everthing.ReadInputRegisters(id, 5000, 54); // 讀取大部分的資料  從5001開始
                     time_now = DateTime.Now; //更新現在時間 
                     Device.Put_Data1(); //根據地址轉換資料並且放入相對應的變數 (地址轉文字)
-                    PCS_Error_log(Device.Device_ID, time_now, PCS_TEST_everthing);
+                    PCS_Error_log(Device.Device_ID, time_now, PCS_Kehua);
                     if (Device.Error_count > 5)                             //不了解這個的意思 
                     {
                         // Mongo_EReset(Device_ID, Device.Communication_error, time_now);
@@ -1563,7 +1562,7 @@ namespace test_everything
         private void Read_PCS()
         {
             DateTime time_now = DateTime.Now;
-            Read_PCS_Kehua("1", "1", PCS_TEST_everthing, ref time_now); // 包含把資料送到pcs的變數 
+            Read_PCS_Kehua("1", "1", PCS_Kehua, ref time_now); // 包含把資料送到pcs的變數 
         }
         ThreadingTimer _ThreadTimer = null;
         ThreadingTimer _ThreadTimer2 = null;
@@ -1722,10 +1721,10 @@ namespace test_everything
 
             try
             {
-                Thread oThreadA = new Thread(new ThreadStart(Read_PCS));          //讀取COM1            
+                Thread oThreadA = new Thread(new ThreadStart(Read_PCS));                    
                 oThreadA.Start();
                 
-                control_mode.fp_Hys_control(PCS_TEST_everthing.F_grid);
+                control_mode.fp_Hys_control(PCS_Kehua.F_grid);
                 master_test_everthing.WriteSingleRegister(1, 6005, (ushort)Grid_Control.p_diff); //p
 
             }
@@ -1738,9 +1737,10 @@ namespace test_everything
         {
             try
             {
-                Thread oThreadA = new Thread(new ThreadStart(Read_PCS));          //讀取COM1            
+                Thread oThreadA = new Thread(new ThreadStart(Read_PCS));                    
                 oThreadA.Start();
-                grid_v = (PCS_TEST_everthing.V_grid1 + PCS_TEST_everthing.V_grid2 + PCS_TEST_everthing.V_grid3) / 3;
+
+                grid_v = (PCS_Kehua.V_grid1 + PCS_Kehua.V_grid2 + PCS_Kehua.V_grid3) / 3;
                 control_mode.Vq_control(grid_v, true);
                 master_test_everthing.WriteSingleRegister(1, 6002, (ushort)Vq_Control.q_tr); //q
                 
@@ -1754,7 +1754,7 @@ namespace test_everything
         }
         private void stroe_code()
         {
-            //PCS實功和虛功皆設定為0
+            //PCS實功和虛功皆設定為0  stop 
             byte id = 1;
             master_test_everthing.WriteSingleRegister(id, 6006, 0); //p
             Thread.Sleep(500);
@@ -1766,13 +1766,18 @@ namespace test_everything
             //4179 master_PCS.WriteSingleRegister(id, 6001, (ushort)PV_Command.SelectedIndex);
             master_test_everthing.WriteSingleRegister(id, 6001, 1); //開機
             master_test_everthing.WriteSingleRegister(id, 6005, 1); //????
-            master_test_everthing.WriteSingleRegister(id, 6007, 1); //孤島模式 
+            master_test_everthing.WriteSingleRegister(id, 6006, 1); //孤島模式  實際的地址 是6007
             master_test_everthing.WriteSingleRegister(id, 6009, 1); //遠端模式 
             
 
         }
 
         private void label1_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void label2_Click(object sender, EventArgs e)
         {
 
         }

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-
+using System.Diagnostics;//debug msg在『輸出』視窗觀看
 namespace test_everything
 {
     class Grid_Control
@@ -89,7 +89,7 @@ namespace test_everything
         public static double q5_set = 0;         //功率點P5
         public static double q6_set = 0;         //功率點P6
         public static double q_base = 0;         //頻率實功基底值
-        public static double v_base = 22800;
+        public static double v_base = 0;
         //public static bool FR_Enable = false;    ///頻率實功模式參數勾選
         public static double q_tr = 0;
 
@@ -103,7 +103,7 @@ namespace test_everything
     }
     class control_mode
     {
-        public static void fp_Hys_control(double grid_f)
+        public static void fp_Hys_control(double grid_f) // return  Grid_Control.p_diff = FR_Hys_Control.p_base * p_val * 0.01;
         {
 
             ///////1為橘線(下降)    0為藍線(上升)  2為區域
@@ -141,18 +141,19 @@ namespace test_everything
                 {
                     if (FR_Hys_Control.Hys_line == 1)       /////藍色曲線/可能在中間區域，由藍色曲線往橘色曲線跑
                     {
+                        Debug.Print("頻率增加"+ "Hys_line == 1");
                         if (grid_f < FR_Hys_Control.f2_set)                   ///////上邊界
                         {
                             p_val = FR_Hys_Control.p2_set; //假如頻率在緩衝區頻率又增加又在藍色線上又小於p2 >就代表在上邊界 因此輸出上邊界功率
                         }
                         else    ////上升線 斜率 ，如果頻率在緩衝區 又在上升線上 頻率大於p2 >輸出上升線 斜率功率 
                         {
-                            p_val = (grid_f - FR_Hys_Control.f2_set) * (FR_Hys_Control.p3_set - FR_Hys_Control.p2_set) / (FR_Hys_Control.f3_set - FR_Hys_Control.f2_set) + FR_Hys_Control.p2_set;
                             FR_Hys_Control.grid_f_last = grid_f;
                         }
                     }
                     else if (FR_Hys_Control.Hys_line == 0)  /////假如不在上升曲線    ///假如頻率是在下降曲線  (左)
                     {
+                        Debug.Print("頻率增加" + "Hys_line == 0");
                         if (grid_f <= (FR_Hys_Control.p_val_last - FR_Hys_Control.p2_set) * (FR_Hys_Control.f3_set - FR_Hys_Control.f2_set) / (FR_Hys_Control.p3_set - FR_Hys_Control.p2_set) + FR_Hys_Control.f2_set)  /////遲滯保持不變
                         {
                             //計算出來的結果還在緩衝區內部 
@@ -211,7 +212,7 @@ namespace test_everything
         }
         
         
-        public static void Vq_control(double grid_v, bool pq_mode)
+        public static void Vq_control(double grid_v, bool pq_mode) //return Vq_Control.q_tr = Vq_Control.q_base * q_val * 0.01;
         { /////需定義一開始為藍線和儲存Grid_v_last值
             //int Hys_line = 1;              ///////1為藍線    0為橘線  2為區域
             grid_v = grid_v * 100 / Vq_Control.v_base;  //換算百分比

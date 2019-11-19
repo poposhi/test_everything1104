@@ -42,6 +42,7 @@
       <HintPath>\\140.118.172.165\學生資料\107詹家彰_jonny\電網控制器\Modbus範例程式\c#.net\modbus_rtu\master\ModbusRTU_Master\ModbusRTU_Master\nmodbuspc.dll</HintPath>
     </Reference>
     <Reference Include="System" />
+    <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
