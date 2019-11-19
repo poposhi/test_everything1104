@@ -6,6 +6,35 @@ using System.Threading.Tasks;
 
 namespace test_everything
 {
+    public class player
+    {
+        //delegate like a func 
+        public delegate void die();
+        public event die playerdie ;
+        private int hp = 100;
+        public void hurt()
+        {
+            hp = hp - 30;
+            Console.WriteLine($"hp : {hp}");
+            if (hp<0)
+            {
+                if (playerdie!= null)
+                {
+                    playerdie();
+                }
+            }
+        }
+    }
+    public class viewer 
+    {
+        
+
+        public void see_people_die()
+        {
+            Console.WriteLine("viewer see_people_die");
+        }
+    }
+
     class Class1 : IComparable<Class1>
     {
         public int num_people { get; set; } //不需要分號 

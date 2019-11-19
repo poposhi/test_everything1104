@@ -33,7 +33,7 @@ namespace test_everything
 
         //電網變數
         static double grid_f = 0;
-        static double grid_v=0;
+        static double grid_v = 0;
         //不是我的
         List<TextBox> listAI = new List<TextBox>();
         List<TextBox> listAO = new List<TextBox>();
@@ -55,7 +55,7 @@ namespace test_everything
             listView1.LabelEdit = false;
             listView1.FullRowSelect = true;
             listView1.Columns.Add("time", 150);
-            listView1.Columns.Add("message",200);
+            listView1.Columns.Add("message", 200);
             //雙緩衝
             listView1.GetType().GetProperty("DoubleBuffered", System.Reflection.BindingFlags.Instance
    | System.Reflection.BindingFlags.NonPublic).SetValue(listView1, true, null);
@@ -97,7 +97,7 @@ namespace test_everything
                 }
             }
         }
-        public static void lv_Print(ListView list,string message)// 輸入listview ,兩個str
+        public static void lv_Print(ListView list, string message)// 輸入listview ,兩個str
         {
             String time = DateTime.Now.ToString();
             //判斷這個TextBox的物件是否在同一個執行緒上
@@ -117,6 +117,56 @@ namespace test_everything
                     list.Items.RemoveAt(1);
                 }
             }
+        }
+        #endregion
+        #region 練習delegate
+        //正妹跟你借30萬
+        //死黨跟你借100
+        //魯蛇跟你借10塊錢
+
+        delegate int CustomAction(int amount);
+        CustomAction peopleAction;
+
+        private int loadtogirl(int loadmoney)
+        {
+            return loadmoney * 10; 
+        }
+        private int loadmen (int loadmoney)
+        {
+            return loadmoney;
+        }
+
+        private string load1(CustomAction people, int amount)
+        {
+            return people(amount).ToString();
+        }
+
+        private void load(string person,int amount)
+        {
+            if (person == "girl")
+            {
+                Debug.Print((amount*10).ToString() );
+            }
+            if (person == "men")
+            {
+                Debug.Print((amount).ToString());
+            }
+
+        }
+        private void bt_read_Click(object sender, EventArgs e)
+        {
+            lv_Print(listView1, System.Configuration.ConfigurationManager.AppSettings["test_key"]);
+            peopleAction = loadtogirl;
+            Debug.Print( load1(peopleAction, 10) );
+            peopleAction = loadmen;
+            Debug.Print( load1(peopleAction, 10) );
+            var player1 = new player();
+            viewer viewer1 = new viewer ();
+            player1.playerdie +=viewer1.see_people_die;
+            player1.hurt();
+            player1.hurt();
+            player1.hurt();
+            player1.hurt();
         }
         #endregion
         private void bt_test_fp_Click(object sender, EventArgs e)
@@ -217,14 +267,7 @@ namespace test_everything
             //timer2.Enabled = true;
 
         }
-        private void bt_read_Click(object sender, EventArgs e)
-        {
-            lv_Print(listView1, System.Configuration.ConfigurationManager.AppSettings["test_key"]);
-            //ushort[] a;
-            //a=master_test_everthing.ReadHoldingRegisters(1,2,1);
-            //Debug.Print(a[0].ToString());
-            
-        }
+
         //
 
 
@@ -431,10 +474,12 @@ namespace test_everything
         // ???  不能夠開一個平行緒  Thread wait = new Thread(new ThreadStart(bt_test_thead_Click)); 
         // 要傳入的變數 ,延遲多久開始執行,  每隔多久執行一次  ，所以應該是開一個平行緒一直重複的在做這些事情 
    
-        
+
         private void bt_test_thead_Click(object sender, EventArgs e)
         {
-            Debug.Print("into bt_test_thead_Click") ;
+            int x = 188;
+            Debug.Print("into bt_test_thead_Click{0}",x) ;
+            Debug.Print($"into bt_test_thead_Click{x} type{x.GetType()}");
             Thread wait = new Thread(new ThreadStart(a_print));
             
             Thread.Sleep(1000);

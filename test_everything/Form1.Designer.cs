@@ -78,7 +78,7 @@
             this.bt_read.Name = "bt_read";
             this.bt_read.Size = new System.Drawing.Size(127, 44);
             this.bt_read.TabIndex = 2;
-            this.bt_read.Text = "read1";
+            this.bt_read.Text = "read1_delegate";
             this.bt_read.UseVisualStyleBackColor = true;
             this.bt_read.Click += new System.EventHandler(this.bt_read_Click);
             // 
