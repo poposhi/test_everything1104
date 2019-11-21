@@ -184,21 +184,42 @@ namespace test_everything
             FR_Hys_Control.p4_set = -100;
             FR_Hys_Control.p5_set = -90;
             FR_Hys_Control.p6_set = 90;
-            FR_Hys_Control.p_base = 250;
+            FR_Hys_Control.p_base = 100;
             double grid_f = 60;
             control_mode.fp_Hys_control(grid_f);
-            lv_Print(listView1, DateTime.Now.ToString(), Grid_Control.p_diff.ToString());    //輸出功率 
+            //lv_Print(listView1, DateTime.Now.ToString(), "輸出功率 "+ Grid_Control.p_diff.ToString());    //輸出功率 
+            
+            for (int i = 0; i < 50; i++)
+            {
+                grid_f += 0.01;
+                control_mode.fp_Hys_control(grid_f);
+                lv_Print(listView1, DateTime.Now.ToString(), grid_f + "hz  " + Grid_Control.p_diff.ToString("#0.00") + "w");    //輸出功率 
+            }
+            for (int i = 0; i < 100; i++)
+            {
+                grid_f -= 0.01;
+                control_mode.fp_Hys_control(grid_f);
+                lv_Print(listView1, DateTime.Now.ToString(), grid_f + "hz  " + Grid_Control.p_diff.ToString("#0.00") + "w");    //輸出功率 
+            }
+
+            for (int i = 0; i < 50; i++)
+            {
+                grid_f += 0.01;
+                control_mode.fp_Hys_control(grid_f);
+                lv_Print(listView1, DateTime.Now.ToString(), grid_f + "hz  " + Grid_Control.p_diff.ToString("#0.00") + "w");    //輸出功率 
+            }
+            
             for (int i= 0; i <10;i++)
             {
                 grid_f +=  0.1;
                 control_mode.fp_Hys_control(grid_f);
-                lv_Print(listView1, DateTime.Now.ToString(), grid_f+"hz  "+ Grid_Control.p_diff.ToString()+"w");    //輸出功率 
+                lv_Print(listView1, DateTime.Now.ToString(), grid_f+"hz  "+ Grid_Control.p_diff.ToString("#0.00") +"w");    //輸出功率 
             }
             for (int i = 0; i < 20; i++)
             {
                 grid_f -= 0.1;
                 control_mode.fp_Hys_control(grid_f);
-                lv_Print(listView1, DateTime.Now.ToString(), grid_f + "hz  " + Grid_Control.p_diff.ToString() + "w");    //輸出功率 
+                lv_Print(listView1, DateTime.Now.ToString(), grid_f + "hz  " + Grid_Control.p_diff.ToString("#0.00") + "w");    //輸出功率 
             }
             #region 不會用到    測試可以比較的物件 
             /*aaaaaaa.num_people = 10;
@@ -1633,7 +1654,7 @@ namespace test_everything
         private void bt_test_vq_Click(object sender, EventArgs e)
         {
             //設定工作點  
-            Vq_Control.q_base =200;
+            Vq_Control.q_base =100;
             Vq_Control.v_base =380;
             Vq_Control.v1_set =95;
             Vq_Control.v2_set =97;
@@ -1654,13 +1675,13 @@ namespace test_everything
             {
                 grid_v += 1.8;
                 control_mode.Vq_control(grid_v, true);
-                lv_Print(listView1, DateTime.Now.ToString(), grid_v + "v  " + Vq_Control.q_tr.ToString() + "var");    //輸出
+                lv_Print(listView1, DateTime.Now.ToString(), grid_v + "v  " + Vq_Control.q_tr.ToString("#0.00") + "var");    //輸出
             }
             for (int i = 0; i < 20; i++)
             {
                 grid_v -= 1.8;
                 control_mode.Vq_control(grid_v, true);
-                lv_Print(listView1, DateTime.Now.ToString(), grid_v + "v  " + Vq_Control.q_tr.ToString() + "var");    //輸出
+                lv_Print(listView1, DateTime.Now.ToString(), grid_v + "v  " + Vq_Control.q_tr.ToString("#0.00") + "var");    //輸出
             }
         }
 
@@ -1825,6 +1846,101 @@ namespace test_everything
         private void label2_Click(object sender, EventArgs e)
         {
 
+        }
+
+        private void button2_Click_1(object sender, EventArgs e)
+        {
+            #region 設定參數 
+            double Hys_line = 0;
+            double grid_f_last = 60;
+            double grid_p_last = 100;
+            double grid_p_base = 100;
+            double grid_f = 60;
+            FR_Hys_Control.f1_set = 59;
+            FR_Hys_Control.f2_set = 59.3;
+            FR_Hys_Control.f3_set = 60.9;
+            FR_Hys_Control.f4_set = 61;
+            FR_Hys_Control.f5_set = 60.7;
+            FR_Hys_Control.f6_set = 59.1;
+            FR_Hys_Control.p1_set = 100; //百分比功率好像是直接那樣寫
+            FR_Hys_Control.p2_set = 90;
+            FR_Hys_Control.p3_set = -90;
+            FR_Hys_Control.p4_set = -100;
+            FR_Hys_Control.p5_set = -90;
+            FR_Hys_Control.p6_set = 90;
+            FR_Hys_Control.p_base = 100;
+#endregion
+            control2.Pf_control(ref Hys_line, ref Grid_Control.p_out, ref grid_f_last, ref grid_p_last,  grid_p_base, grid_f, FR_Hys_Control.f1_set, FR_Hys_Control.f2_set, FR_Hys_Control.f3_set, FR_Hys_Control.f4_set, FR_Hys_Control.f5_set, FR_Hys_Control.f6_set, FR_Hys_Control.p1_set, FR_Hys_Control.p2_set, FR_Hys_Control.p3_set, FR_Hys_Control.p4_set, FR_Hys_Control.p5_set, FR_Hys_Control.p6_set);
+            for (int i = 0; i < 50; i++)
+            {
+                grid_f += 0.01;
+                control2.Pf_control(ref Hys_line, ref Grid_Control.p_out, ref grid_f_last, ref grid_p_last, grid_p_base, grid_f, FR_Hys_Control.f1_set, FR_Hys_Control.f2_set, FR_Hys_Control.f3_set, FR_Hys_Control.f4_set, FR_Hys_Control.f5_set, FR_Hys_Control.f6_set, FR_Hys_Control.p1_set, FR_Hys_Control.p2_set, FR_Hys_Control.p3_set, FR_Hys_Control.p4_set, FR_Hys_Control.p5_set, FR_Hys_Control.p6_set);
+                lv_Print(listView1, DateTime.Now.ToString(), grid_f + "hz  " + Grid_Control.p_out.ToString("#0.00") + "w");    //輸出功率 
+            }
+            for (int i = 0; i < 100; i++)
+            {
+                grid_f -= 0.01;
+                control2.Pf_control(ref Hys_line, ref Grid_Control.p_out, ref grid_f_last, ref grid_p_last, grid_p_base, grid_f, FR_Hys_Control.f1_set, FR_Hys_Control.f2_set, FR_Hys_Control.f3_set, FR_Hys_Control.f4_set, FR_Hys_Control.f5_set, FR_Hys_Control.f6_set, FR_Hys_Control.p1_set, FR_Hys_Control.p2_set, FR_Hys_Control.p3_set, FR_Hys_Control.p4_set, FR_Hys_Control.p5_set, FR_Hys_Control.p6_set);
+                lv_Print(listView1, DateTime.Now.ToString(), grid_f + "hz  " + Grid_Control.p_out.ToString("#0.00") + "w");    //輸出功率 
+            }
+
+            for (int i = 0; i < 50; i++)
+            {
+                grid_f += 0.01;
+                control2.Pf_control(ref Hys_line, ref Grid_Control.p_out, ref grid_f_last, ref grid_p_last, grid_p_base, grid_f, FR_Hys_Control.f1_set, FR_Hys_Control.f2_set, FR_Hys_Control.f3_set, FR_Hys_Control.f4_set, FR_Hys_Control.f5_set, FR_Hys_Control.f6_set, FR_Hys_Control.p1_set, FR_Hys_Control.p2_set, FR_Hys_Control.p3_set, FR_Hys_Control.p4_set, FR_Hys_Control.p5_set, FR_Hys_Control.p6_set);
+                lv_Print(listView1, DateTime.Now.ToString(), grid_f + "hz  " + Grid_Control.p_out.ToString("#0.00") + "w");    //輸出功率 
+            }
+        }
+
+        private void button3_Click(object sender, EventArgs e)
+        {
+            #region 設定參數 vq 
+            double Hys_line = 0;
+            double grid_v_last = 380;
+            double grid_q_last = 100;
+            double grid_q_base = 100;
+            double grid_v = 380;
+            double base_v = 380;
+            Vq_Control.v1_set = 95;
+            Vq_Control.v2_set = 97;
+            Vq_Control.v3_set = 104;
+            Vq_Control.v4_set = 105;
+            Vq_Control.v5_set = 103;
+            Vq_Control.v6_set = 96;
+            Vq_Control.q1_set = 100;
+            Vq_Control.q2_set = 80;
+            Vq_Control.q3_set = -80;
+            Vq_Control.q4_set = -100;
+            Vq_Control.q5_set = -80;
+            Vq_Control.q6_set = 80;
+            #endregion
+            control2.Vq_control(ref Hys_line, ref Grid_Control.q_out, ref grid_v_last, ref grid_q_last, grid_q_base, base_v, grid_v, Vq_Control.v1_set, Vq_Control.v2_set, Vq_Control.v3_set, Vq_Control.v4_set, Vq_Control.v5_set, Vq_Control.v6_set, Vq_Control.q1_set, Vq_Control.q2_set, Vq_Control.q3_set, Vq_Control.q4_set, Vq_Control.q5_set, Vq_Control.q6_set);
+            
+            for (int i = 0; i < 50; i++)
+            {
+                grid_v += 0.2;
+                control2.Vq_control(ref Hys_line, ref Grid_Control.q_out, ref grid_v_last, ref grid_q_last, grid_q_base, base_v, grid_v, Vq_Control.v1_set, Vq_Control.v2_set, Vq_Control.v3_set, Vq_Control.v4_set, Vq_Control.v5_set, Vq_Control.v6_set, Vq_Control.q1_set, Vq_Control.q2_set, Vq_Control.q3_set, Vq_Control.q4_set, Vq_Control.q5_set, Vq_Control.q6_set);
+                lv_Print(listView1, DateTime.Now.ToString(), grid_v + "v  " + Grid_Control.q_out.ToString("#0.00") + "var");    //輸出功率 
+            }
+            for (int i = 0; i < 100; i++)
+            {
+                grid_v -= 0.2;
+                //control2.Vq_control(ref Hys_line, ref Grid_Control.q_out, ref grid_v_last, ref grid_q_last, grid_q_base, base_v, grid_v, Vq_Control.v1_set, Vq_Control.v2_set, Vq_Control.v3_set, Vq_Control.v4_set, Vq_Control.v5_set, Vq_Control.v6_set, Vq_Control.q1_set, Vq_Control.q2_set, Vq_Control.q3_set, Vq_Control.q4_set, Vq_Control.q5_set, Vq_Control.q6_set);
+                lv_Print(listView1, DateTime.Now.ToString(), grid_v + "v  " + Grid_Control.q_out.ToString("#0.00") + "var");    //輸出功率 
+            }
+
+            for (int i = 0; i < 50; i++)
+            {
+                grid_v += 0.2;
+                control2.Vq_control(ref Hys_line, ref Grid_Control.q_out, ref grid_v_last, ref grid_q_last, grid_q_base, base_v, grid_v, Vq_Control.v1_set, Vq_Control.v2_set, Vq_Control.v3_set, Vq_Control.v4_set, Vq_Control.v5_set, Vq_Control.v6_set, Vq_Control.q1_set, Vq_Control.q2_set, Vq_Control.q3_set, Vq_Control.q4_set, Vq_Control.q5_set, Vq_Control.q6_set);
+                lv_Print(listView1, DateTime.Now.ToString(), grid_v + "v  " + Grid_Control.q_out.ToString("#0.00") + "var");    //輸出功率 
+            }
+        }
+
+        private void button4_Click(object sender, EventArgs e)
+        {
+            listView1.Clear();
+            InitialListView();
         }
     }
 }

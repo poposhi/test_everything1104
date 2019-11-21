@@ -8,6 +8,11 @@ namespace test_everything
 {
     class Grid_Control
     {
+        #region 龍井新增
+        public static int flag = 0;     ///穩定輸出 1、平滑化2 
+        public static double p_out = 0;         //////目標輸出實功
+        public static double q_out = 0;         //////目標輸出虛功
+        #endregion
         public static string[] mode_define;
         public static string mode_name;
         public static string[] schedule_define;
@@ -68,7 +73,7 @@ namespace test_everything
         public static double p_tr = 0;
         /////////////////////////////////////////
         public static int Hys_line = 1;
-        public static double grid_f_last;
+        public static double grid_f_last=60.00;
         public static double p_val_last;
         //////測試
         public static int test_flag = 0;
@@ -137,31 +142,36 @@ namespace test_everything
             /////////////////////////遲滯部分            
             else if (FR_Hys_Control.f6_set < grid_f && grid_f < FR_Hys_Control.f3_set)
             {/////假如頻率介於6跟3之間 代表介於遲滯 ，若頻率增加 
-                if (grid_f >= FR_Hys_Control.grid_f_last)    ////頻率增加
+                if (grid_f >= FR_Hys_Control.grid_f_last)    ////頻率增加 可能在線上或是藍箭頭
                 {
-                    if (FR_Hys_Control.Hys_line == 1)       /////藍色曲線/可能在中間區域，由藍色曲線往橘色曲線跑
+                    if (FR_Hys_Control.Hys_line == 1)       /////藍色曲線/可能在中間區域
                     {
-                        Debug.Print("頻率增加"+ "Hys_line == 1");
                         if (grid_f < FR_Hys_Control.f2_set)                   ///////上邊界
                         {
+                            Debug.Print(grid_f + "hz 頻率增加" + "Hys_line == 1");
+                            
                             p_val = FR_Hys_Control.p2_set; //假如頻率在緩衝區頻率又增加又在藍色線上又小於p2 >就代表在上邊界 因此輸出上邊界功率
                         }
                         else    ////上升線 斜率 ，如果頻率在緩衝區 又在上升線上 頻率大於p2 >輸出上升線 斜率功率 
                         {
+                            Debug.Print(grid_f + "hz頻率增加" + "功率輸出斜線 ");
+                            p_val = (grid_f - FR_Hys_Control.f2_set) * (FR_Hys_Control.p3_set - FR_Hys_Control.p2_set) / (FR_Hys_Control.f3_set - FR_Hys_Control.f2_set) + FR_Hys_Control.p2_set;
                             FR_Hys_Control.grid_f_last = grid_f;
                         }
                     }
                     else if (FR_Hys_Control.Hys_line == 0)  /////假如不在上升曲線    ///假如頻率是在下降曲線  (左)
                     {
-                        Debug.Print("頻率增加" + "Hys_line == 0");
+                        Debug.Print(grid_f+"hz 頻率增加" + "Hys_line == 0");
                         if (grid_f <= (FR_Hys_Control.p_val_last - FR_Hys_Control.p2_set) * (FR_Hys_Control.f3_set - FR_Hys_Control.f2_set) / (FR_Hys_Control.p3_set - FR_Hys_Control.p2_set) + FR_Hys_Control.f2_set)  /////遲滯保持不變
                         {
                             //計算出來的結果還在緩衝區內部 
+                            Debug.Print(grid_f + "hz 頻率增加" + "頻率在線上");
                             p_val = FR_Hys_Control.p_val_last;
                         }
                         else       /////假如不在上升線的左邊就要更新功率輸出 並且設定目前在上升曲線上 
                         {
-                            p_val = (grid_f - FR_Hys_Control.f2_set) * (FR_Hys_Control.p3_set - FR_Hys_Control.p2_set) / (FR_Hys_Control.f3_set - FR_Hys_Control.f2_set) + FR_Hys_Control.p2_set;
+                            //我加的
+                            //p_val = (grid_f - FR_Hys_Control.f2_set) * (FR_Hys_Control.p3_set - FR_Hys_Control.p2_set) / (FR_Hys_Control.f3_set - FR_Hys_Control.f2_set) + FR_Hys_Control.p2_set;
                             FR_Hys_Control.Hys_line = 1;
                         }
                     }
@@ -186,6 +196,8 @@ namespace test_everything
                         if (grid_f >= (FR_Hys_Control.p_val_last - FR_Hys_Control.p5_set) * (FR_Hys_Control.f6_set - FR_Hys_Control.f5_set) / (FR_Hys_Control.p6_set - FR_Hys_Control.p5_set) + FR_Hys_Control.f5_set)  /////遲滯保持不變                           
                         {
                             p_val = FR_Hys_Control.p_val_last;
+                            //我加的
+                            //p_val = (grid_f - FR_Hys_Control.f6_set) * (FR_Hys_Control.p5_set - FR_Hys_Control.p6_set) / (FR_Hys_Control.f5_set - FR_Hys_Control.f6_set) + FR_Hys_Control.p6_set;
                         }
                         else                                                                           /////到達藍曲線
                         {
@@ -196,7 +208,7 @@ namespace test_everything
                 }
             }
             FR_Hys_Control.p_val_last = p_val;
-            Grid_Control.p_diff = FR_Hys_Control.p_base * p_val * 0.01;
+            Grid_Control.p_diff = FR_Hys_Control.p_base * p_val * 0.01;  // 百分比換算 
             //if (Vq_Control.q_tr > 50)
             //{
             //    Vq_Control.q_tr = Vq_Control.q_tr - 50;
@@ -210,7 +222,6 @@ namespace test_everything
             //    Vq_Control.q_tr = 0;
             //}
         }
-        
         
         public static void Vq_control(double grid_v, bool pq_mode) //return Vq_Control.q_tr = Vq_Control.q_base * q_val * 0.01;
         { /////需定義一開始為藍線和儲存Grid_v_last值
@@ -263,6 +274,7 @@ namespace test_everything
             /////////////////////////遲滯部分            
             else if (Vq_Control.v6_set < grid_v && grid_v < Vq_Control.v3_set) /////電壓介於遲滯
             {
+                Debug.Print("{0}v進入遲滯", grid_v);
                 if (grid_v >= Vq_Control.grid_v_last)    ////電壓增加
                 {
                     if (Vq_Control.Hys_line == 1)       /////藍曲線
@@ -309,10 +321,12 @@ namespace test_everything
                     {
                         if (grid_v >= (Vq_Control.q_val_last - Vq_Control.q5_set) * (Vq_Control.v6_set - Vq_Control.v5_set) / (Vq_Control.q6_set - Vq_Control.q5_set) + Vq_Control.v5_set)  /////遲滯保持不變                           
                         {
+                            Debug.Print(" {0}v電壓下降 Hline= 1 大於橘色線 ", grid_v);
                             q_val = Vq_Control.q_val_last;
                         }
                         else                                                                           /////到達藍曲線
                         {
+                            Debug.Print(" {0}v電壓下降 Hline= 1 小於橘色線 ", grid_v);
                             q_val = (grid_v - Vq_Control.v6_set) * (Vq_Control.q5_set - Vq_Control.q6_set) / (Vq_Control.v5_set - Vq_Control.v6_set) + Vq_Control.q6_set;
                             Vq_Control.Hys_line = 0;
                         }
@@ -324,6 +338,7 @@ namespace test_everything
             //grid_v_last = grid_v;
 
         }
+        
         public static double map_to_line_x2y(double x_axis_diff, double x_axis_Lengh, double y_axis_Lengh, double y_axis_Benchmark)
         {//找到斜線上對應的數值 
             return x_axis_diff * y_axis_Lengh / x_axis_Lengh + y_axis_Benchmark;

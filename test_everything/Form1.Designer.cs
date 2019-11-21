@@ -50,6 +50,9 @@
             this.bt_pq = new System.Windows.Forms.Button();
             this.tmfp = new System.Windows.Forms.Timer(this.components);
             this.tm_vq = new System.Windows.Forms.Timer(this.components);
+            this.button2 = new System.Windows.Forms.Button();
+            this.button3 = new System.Windows.Forms.Button();
+            this.button4 = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // button1
@@ -106,7 +109,7 @@
             // 
             this.bt_test_fp.Location = new System.Drawing.Point(12, 195);
             this.bt_test_fp.Name = "bt_test_fp";
-            this.bt_test_fp.Size = new System.Drawing.Size(127, 44);
+            this.bt_test_fp.Size = new System.Drawing.Size(63, 44);
             this.bt_test_fp.TabIndex = 129;
             this.bt_test_fp.Text = "test_fp";
             this.bt_test_fp.UseVisualStyleBackColor = true;
@@ -114,9 +117,9 @@
             // 
             // bt_test_read_pcs
             // 
-            this.bt_test_read_pcs.Location = new System.Drawing.Point(12, 249);
+            this.bt_test_read_pcs.Location = new System.Drawing.Point(12, 245);
             this.bt_test_read_pcs.Name = "bt_test_read_pcs";
-            this.bt_test_read_pcs.Size = new System.Drawing.Size(127, 44);
+            this.bt_test_read_pcs.Size = new System.Drawing.Size(93, 44);
             this.bt_test_read_pcs.TabIndex = 130;
             this.bt_test_read_pcs.Text = "test_read_pcs";
             this.bt_test_read_pcs.UseVisualStyleBackColor = true;
@@ -124,9 +127,9 @@
             // 
             // bt_test_timer
             // 
-            this.bt_test_timer.Location = new System.Drawing.Point(12, 310);
+            this.bt_test_timer.Location = new System.Drawing.Point(12, 295);
             this.bt_test_timer.Name = "bt_test_timer";
-            this.bt_test_timer.Size = new System.Drawing.Size(127, 44);
+            this.bt_test_timer.Size = new System.Drawing.Size(74, 44);
             this.bt_test_timer.TabIndex = 131;
             this.bt_test_timer.Text = "test_timer";
             this.bt_test_timer.UseVisualStyleBackColor = true;
@@ -143,9 +146,9 @@
             // 
             // bt_test_vq
             // 
-            this.bt_test_vq.Location = new System.Drawing.Point(154, 373);
+            this.bt_test_vq.Location = new System.Drawing.Point(76, 195);
             this.bt_test_vq.Name = "bt_test_vq";
-            this.bt_test_vq.Size = new System.Drawing.Size(127, 44);
+            this.bt_test_vq.Size = new System.Drawing.Size(63, 44);
             this.bt_test_vq.TabIndex = 133;
             this.bt_test_vq.Text = "test_vq";
             this.bt_test_vq.UseVisualStyleBackColor = true;
@@ -247,11 +250,44 @@
             this.tm_vq.Interval = 1000;
             this.tm_vq.Tick += new System.EventHandler(this.tm_vq_Tick);
             // 
+            // button2
+            // 
+            this.button2.Location = new System.Drawing.Point(161, 373);
+            this.button2.Name = "button2";
+            this.button2.Size = new System.Drawing.Size(78, 44);
+            this.button2.TabIndex = 142;
+            this.button2.Text = "測龍井Fp曲線";
+            this.button2.UseVisualStyleBackColor = true;
+            this.button2.Click += new System.EventHandler(this.button2_Click_1);
+            // 
+            // button3
+            // 
+            this.button3.Location = new System.Drawing.Point(245, 373);
+            this.button3.Name = "button3";
+            this.button3.Size = new System.Drawing.Size(78, 44);
+            this.button3.TabIndex = 143;
+            this.button3.Text = "測龍井Vq曲線";
+            this.button3.UseVisualStyleBackColor = true;
+            this.button3.Click += new System.EventHandler(this.button3_Click);
+            // 
+            // button4
+            // 
+            this.button4.Location = new System.Drawing.Point(329, 373);
+            this.button4.Name = "button4";
+            this.button4.Size = new System.Drawing.Size(78, 44);
+            this.button4.TabIndex = 144;
+            this.button4.Text = "clear";
+            this.button4.UseVisualStyleBackColor = true;
+            this.button4.Click += new System.EventHandler(this.button4_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(800, 450);
+            this.Controls.Add(this.button4);
+            this.Controls.Add(this.button3);
+            this.Controls.Add(this.button2);
             this.Controls.Add(this.bt_pq);
             this.Controls.Add(this.textBox_q);
             this.Controls.Add(this.label2);
@@ -299,6 +335,9 @@
         private System.Windows.Forms.Button bt_pq;
         private System.Windows.Forms.Timer tmfp;
         private System.Windows.Forms.Timer tm_vq;
+        private System.Windows.Forms.Button button2;
+        private System.Windows.Forms.Button button3;
+        private System.Windows.Forms.Button button4;
     }
 }
 
