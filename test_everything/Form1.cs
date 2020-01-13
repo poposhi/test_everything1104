@@ -17,12 +17,17 @@ using System.Diagnostics;//debug msg在『輸出』視窗觀看
 using System.IO.Ports;  //for serial port
 using System.Threading;  // 可以讓整個執行緒停止  Thread.Sleep(2000);
 using ThreadingTimer = System.Threading.Timer;  //可以開一個平行緒計算時間 
-
+using System.IO; // 讀取寫入文字檔 
+using System.Data.OleDb; //讀EXCEL
+using Excel = Microsoft.Office.Interop.Excel;
 
 namespace test_everything
 {
     public partial class Form1 : Form
     {
+
+
+
         #region 宣告變數  串列連結  Master List 
         SerialPort serialPort = new SerialPort();
         ModbusSerialMaster master_test_everthing;
@@ -30,6 +35,11 @@ namespace test_everything
         private Class1 bbbbbbb = new Class1("babe");
         List<Class1> school = new List<Class1>();
         private PCS PCS_Kehua = new PCS();
+
+        //test
+        player player_name = new player();
+
+
 
         //電網變數
         static double grid_f = 0;
@@ -42,11 +52,13 @@ namespace test_everything
         #endregion
         public Form1()
         {
+
             InitializeComponent();
             bt_test_read_pcs.Enabled = false;
             InitialListView();
             textBox_q.Enabled = false;
             textBox_p.Enabled = false;
+
         }
         private void InitialListView()//初始化ListView的格式大小 
         {
@@ -129,9 +141,9 @@ namespace test_everything
 
         private int loadtogirl(int loadmoney)
         {
-            return loadmoney * 10; 
+            return loadmoney * 10;
         }
-        private int loadmen (int loadmoney)
+        private int loadmen(int loadmoney)
         {
             return loadmoney;
         }
@@ -141,39 +153,43 @@ namespace test_everything
             return people(amount).ToString();
         }
 
-        private void load(string person,int amount)
+        private void load(string person, int amount)
         {
             if (person == "girl")
             {
-                Debug.Print((amount*10).ToString() );
+                Debug.Print((amount * 10).ToString());
             }
             if (person == "men")
             {
                 Debug.Print((amount).ToString());
             }
 
+
+
+
         }
         private void bt_read_Click(object sender, EventArgs e)
         {
             lv_Print(listView1, System.Configuration.ConfigurationManager.AppSettings["test_key"]);
             peopleAction = loadtogirl;
-            Debug.Print( load1(peopleAction, 10) );
+            Debug.Print(load1(peopleAction, 10));
             peopleAction = loadmen;
-            Debug.Print( load1(peopleAction, 10) );
+            Debug.Print(load1(peopleAction, 10));
             var player1 = new player();
-            viewer viewer1 = new viewer ();
-            player1.playerdie +=viewer1.see_people_die;
-            player1.hurt();
-            player1.hurt();
-            player1.hurt();
-            player1.hurt();
+            viewer viewer1 = new viewer();
+            player1.playerdie += viewer1.See_People_Die;
+            player1.Hurt();
+            player1.Hurt();
+            player1.Hurt();
+            player1.Hurt();
+
         }
         #endregion
         private void bt_test_fp_Click(object sender, EventArgs e)
         {
             //設定工作點  
             FR_Hys_Control.f1_set = 59;
-            FR_Hys_Control.f2_set =59.3 ;
+            FR_Hys_Control.f2_set = 59.3;
             FR_Hys_Control.f3_set = 60.9;
             FR_Hys_Control.f4_set = 61;
             FR_Hys_Control.f5_set = 60.7;
@@ -188,7 +204,7 @@ namespace test_everything
             double grid_f = 60;
             control_mode.fp_Hys_control(grid_f);
             //lv_Print(listView1, DateTime.Now.ToString(), "輸出功率 "+ Grid_Control.p_diff.ToString());    //輸出功率 
-            
+
             for (int i = 0; i < 50; i++)
             {
                 grid_f += 0.01;
@@ -208,12 +224,12 @@ namespace test_everything
                 control_mode.fp_Hys_control(grid_f);
                 lv_Print(listView1, DateTime.Now.ToString(), grid_f + "hz  " + Grid_Control.p_diff.ToString("#0.00") + "w");    //輸出功率 
             }
-            
-            for (int i= 0; i <10;i++)
+
+            for (int i = 0; i < 10; i++)
             {
-                grid_f +=  0.1;
+                grid_f += 0.1;
                 control_mode.fp_Hys_control(grid_f);
-                lv_Print(listView1, DateTime.Now.ToString(), grid_f+"hz  "+ Grid_Control.p_diff.ToString("#0.00") +"w");    //輸出功率 
+                lv_Print(listView1, DateTime.Now.ToString(), grid_f + "hz  " + Grid_Control.p_diff.ToString("#0.00") + "w");    //輸出功率 
             }
             for (int i = 0; i < 20; i++)
             {
@@ -270,15 +286,15 @@ namespace test_everything
             //master_test_everthing.WriteSingleRegister(1, 5001, 555);
             #region modbus 通訊測試
             try
-            { 
+            {
                 master_test_everthing.Transport.Retries = 0;   //don't have to do retries
                 master_test_everthing.Transport.ReadTimeout = 300; //milliseconds
-                                                    //master.ReadHoldingRegisters(1, startAddress, numofPoints);
+                                                                   //master.ReadHoldingRegisters(1, startAddress, numofPoints);
                 master_test_everthing.WriteSingleRegister(1, 6008, 555); //結果會寫入46009 
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
-                Debug.Print("modbus Exception"+ ex.Message);
+                Debug.Print("modbus Exception" + ex.Message);
                 lv_Print(listView1, DateTime.Now.ToString(), "modbus Exception" + ex.Message);
             }
 
@@ -346,7 +362,7 @@ namespace test_everything
 
             try
             {// 串列 開啟連線 送到master裡面 設定重新連線次數  等待時間 更改按鈕 
-                serialport.Open(); 
+                serialport.Open();
                 master = ModbusSerialMaster.CreateRtu(serialport);
                 master.Transport.Retries = 0;   //don't have to do retries
                 master.Transport.ReadTimeout = 1000; //milliseconds
@@ -391,7 +407,7 @@ namespace test_everything
                 for (int i = 0; i < numofPoints; i++)
                 {
                     //listAI[i].Text = register[i].ToString();
-                    
+
                     //If you need to show the value with other unit, you have to caculate the gain and offset
                     //eq. 0 to 0kg, 32767 to 1000kg
                     //0 (kg) = gain * 0 + offset
@@ -400,7 +416,7 @@ namespace test_everything
                     //double value = (double)register[i] * 10.0 / 32767;
                     //listAI[i].Text = value.ToString("0.00");
                 }
-                int a =0;
+                int a = 0;
                 //read AO(4xxxx)
                 //ushort[] holdingregister = master.ReadHoldingRegisters(slaveID, startAddress, numofPoints);
                 //for (int i = 0; i < numofPoints; i++)
@@ -431,8 +447,8 @@ namespace test_everything
                 if (exception.Source.Equals("nModbusPC"))
                 {
                     string str = exception.Message;
-                    int FunctionCode=0;
-                    string ExceptionCode="0";
+                    int FunctionCode = 0;
+                    string ExceptionCode = "0";
 
                     //str = str.Remove(0, str.IndexOf("\r\n") + 17);
                     //FunctionCode = Convert.ToInt16(str.Remove(str.IndexOf("\r\n")));
@@ -494,33 +510,33 @@ namespace test_everything
         //Thread oThreadA = new Thread(new ThreadStart(Read_PCS));  
         // ???  不能夠開一個平行緒  Thread wait = new Thread(new ThreadStart(bt_test_thead_Click)); 
         // 要傳入的變數 ,延遲多久開始執行,  每隔多久執行一次  ，所以應該是開一個平行緒一直重複的在做這些事情 
-   
+
 
         private void bt_test_thead_Click(object sender, EventArgs e)
         {
             int x = 188;
-            Debug.Print("into bt_test_thead_Click{0}",x) ;
+            Debug.Print("into bt_test_thead_Click{0}", x);
             Debug.Print($"into bt_test_thead_Click{x} type{x.GetType()}");
             Thread wait = new Thread(new ThreadStart(a_print));
-            
+
             Thread.Sleep(1000);
             Debug.Print("等1秒後 ");
             wait.Start();
-            
+
             Debug.Print("Wait之後 ");
             Thread.Sleep(1000);
             Debug.Print(" Wait之後  等1秒後 ");
 
         }
-        private void a_print ()
+        private void a_print()
         {
-            Debug.Print("  ppppppppp") ;
+            Debug.Print("  ppppppppp");
             Thread.Sleep(3000);
             Debug.Print(" 等3秒後  ppppppppp");
         }
 
 
- 
+
 
         private void Read_PCS_Kehua(string Port_ID, string Device_ID, PCS Device, ref DateTime time_now)
         {
@@ -624,7 +640,7 @@ namespace test_everything
             return time_now;
         }
 
-        private void PCS_Error_log(string Device_ID, DateTime error_time,PCS PCS1)
+        private void PCS_Error_log(string Device_ID, DateTime error_time, PCS PCS1)
         {
             #region Error1   Error1 (ushort )
             int a = 0;
@@ -651,7 +667,7 @@ namespace test_everything
                     }
                 }
                 /////////////////////////////////////////
-                
+
                 a = PCS1.Error1 & 2;
                 if (a == 2)
                 {
@@ -1614,13 +1630,13 @@ namespace test_everything
         }
         private void pcs_recovery(string Slave, string error_msg, DateTime time)
         {
-            lv_Print(listView1, time.ToString(), error_msg+ "recovery");
+            lv_Print(listView1, time.ToString(), error_msg + "recovery");
             Debug.Print(" pcs_recovery");
         }
 
         private void bt_test_read_pcs_Click(object sender, EventArgs e)
         {
-            
+
             // 應該要開平行緒 
             Thread oThreadA = new Thread(new ThreadStart(Read_PCS));          //讀取COM1            
             oThreadA.Start();
@@ -1641,9 +1657,9 @@ namespace test_everything
             pprint();
             Debug.Print(currentName);
             DateTime dd = DateTime.Now;
-            lv_Print(listView1,dd.ToString(), currentName);
-            
-    
+            lv_Print(listView1, dd.ToString(), currentName);
+
+
         }
         private void pprint()
         {
@@ -1654,22 +1670,22 @@ namespace test_everything
         private void bt_test_vq_Click(object sender, EventArgs e)
         {
             //設定工作點  
-            Vq_Control.q_base =100;
-            Vq_Control.v_base =380;
-            Vq_Control.v1_set =95;
-            Vq_Control.v2_set =97;
-            Vq_Control.v3_set =104;
-            Vq_Control.v4_set =105;
-            Vq_Control.v5_set =103;
-            Vq_Control.v6_set =96;
-            Vq_Control.q1_set =100;
-            Vq_Control.q2_set =80;
-            Vq_Control.q3_set =-80;
-            Vq_Control.q4_set =-100;
-            Vq_Control.q5_set =-80;
-            Vq_Control.q6_set =80;
+            Vq_Control.q_base = 100;
+            Vq_Control.v_base = 380;
+            Vq_Control.v1_set = 95;
+            Vq_Control.v2_set = 97;
+            Vq_Control.v3_set = 104;
+            Vq_Control.v4_set = 105;
+            Vq_Control.v5_set = 103;
+            Vq_Control.v6_set = 96;
+            Vq_Control.q1_set = 100;
+            Vq_Control.q2_set = 80;
+            Vq_Control.q3_set = -80;
+            Vq_Control.q4_set = -100;
+            Vq_Control.q5_set = -80;
+            Vq_Control.q6_set = 80;
             double grid_v = 380;   //361-399
-            control_mode.Vq_control(grid_v,true);  ////輸入電壓會修改q輸出 
+            control_mode.Vq_control(grid_v, true);  ////輸入電壓會修改q輸出 
             //lv_Print(listView1, DateTime.Now.ToString(), Vq_Control.q_tr.ToString());    //輸出
             for (int i = 0; i < 10; i++)
             {
@@ -1713,7 +1729,7 @@ namespace test_everything
             FR_Hys_Control.p_base = 250;
             double grid_f = 60;
             #endregion
-            
+
         }
         private void radioButton3_CheckedChanged(object sender, EventArgs e)
         {
@@ -1750,12 +1766,12 @@ namespace test_everything
             {
                 lv_Print(listView1, "Cant write p ");
             }
-        
+
         }
 
         private void textBox_q_TextChanged(object sender, EventArgs e)
         {
-            
+
             try
             {
                 master_test_everthing.WriteSingleRegister(1, 6003, Convert.ToUInt16(textBox_q.Text)); //q   //寫入暫存器
@@ -1772,7 +1788,7 @@ namespace test_everything
             try
             {
                 ushort pp, qq;
-                pp =Convert.ToUInt16(textBox_p.Text);
+                pp = Convert.ToUInt16(textBox_p.Text);
                 qq = Convert.ToUInt16(textBox_q.Text);
                 master_test_everthing.WriteSingleRegister(id, 6005, pp); //p 寫入 46006 
                 Thread.Sleep(500);
@@ -1781,15 +1797,15 @@ namespace test_everything
             catch { lv_Print(listView1, "寫入 pq 錯誤"); }
 
         }
-        
+
         private void tmfp_Tick(object sender, EventArgs e)
         {
 
             try
             {
-                Thread oThreadA = new Thread(new ThreadStart(Read_PCS));                    
+                Thread oThreadA = new Thread(new ThreadStart(Read_PCS));
                 oThreadA.Start();
-                
+
                 control_mode.fp_Hys_control(PCS_Kehua.F_grid);
                 master_test_everthing.WriteSingleRegister(1, 6005, (ushort)Grid_Control.p_diff); //p
 
@@ -1803,20 +1819,20 @@ namespace test_everything
         {
             try
             {
-                Thread oThreadA = new Thread(new ThreadStart(Read_PCS));                    
+                Thread oThreadA = new Thread(new ThreadStart(Read_PCS));
                 oThreadA.Start();
 
                 grid_v = (PCS_Kehua.V_grid1 + PCS_Kehua.V_grid2 + PCS_Kehua.V_grid3) / 3;
                 control_mode.Vq_control(grid_v, true);
                 master_test_everthing.WriteSingleRegister(1, 6002, (ushort)Vq_Control.q_tr); //q
-                
+
             }
-            catch 
+            catch
             {
                 lv_Print(listView1, "tm_vq_Tick error");
             }
-            
-            
+
+
         }
         private void stroe_code()
         {
@@ -1834,7 +1850,7 @@ namespace test_everything
             master_test_everthing.WriteSingleRegister(id, 6005, 1); //????
             master_test_everthing.WriteSingleRegister(id, 6006, 1); //孤島模式  實際的地址 是6007
             master_test_everthing.WriteSingleRegister(id, 6009, 1); //遠端模式 
-            
+
 
         }
 
@@ -1847,7 +1863,32 @@ namespace test_everything
         {
 
         }
+        private int to_2complement(int value)
+        {//把功率轉換成2的補數 
+            if (value > 32768)
+            {
 
+                return value - 65536;
+            }
+            else
+            {
+                return value;
+            }
+            //Now value is -100
+        }
+        private int negative2complement(int value)
+        {//把功率轉換成2的補數 
+            if (value < 0)
+            {
+                //return value + 256;
+                return value + 65536;
+            }
+            else
+            {
+                return value;
+            }
+            //Now value is -100
+        }
         private void button2_Click_1(object sender, EventArgs e)
         {
             #region 設定參數 
@@ -1869,8 +1910,8 @@ namespace test_everything
             FR_Hys_Control.p5_set = -90;
             FR_Hys_Control.p6_set = 90;
             FR_Hys_Control.p_base = 100;
-#endregion
-            control2.Pf_control(ref Hys_line, ref Grid_Control.p_out, ref grid_f_last, ref grid_p_last,  grid_p_base, grid_f, FR_Hys_Control.f1_set, FR_Hys_Control.f2_set, FR_Hys_Control.f3_set, FR_Hys_Control.f4_set, FR_Hys_Control.f5_set, FR_Hys_Control.f6_set, FR_Hys_Control.p1_set, FR_Hys_Control.p2_set, FR_Hys_Control.p3_set, FR_Hys_Control.p4_set, FR_Hys_Control.p5_set, FR_Hys_Control.p6_set);
+            #endregion
+            control2.Pf_control(ref Hys_line, ref Grid_Control.p_out, ref grid_f_last, ref grid_p_last, grid_p_base, grid_f, FR_Hys_Control.f1_set, FR_Hys_Control.f2_set, FR_Hys_Control.f3_set, FR_Hys_Control.f4_set, FR_Hys_Control.f5_set, FR_Hys_Control.f6_set, FR_Hys_Control.p1_set, FR_Hys_Control.p2_set, FR_Hys_Control.p3_set, FR_Hys_Control.p4_set, FR_Hys_Control.p5_set, FR_Hys_Control.p6_set);
             for (int i = 0; i < 50; i++)
             {
                 grid_f += 0.01;
@@ -1915,7 +1956,7 @@ namespace test_everything
             Vq_Control.q6_set = 80;
             #endregion
             control2.Vq_control(ref Hys_line, ref Grid_Control.q_out, ref grid_v_last, ref grid_q_last, grid_q_base, base_v, grid_v, Vq_Control.v1_set, Vq_Control.v2_set, Vq_Control.v3_set, Vq_Control.v4_set, Vq_Control.v5_set, Vq_Control.v6_set, Vq_Control.q1_set, Vq_Control.q2_set, Vq_Control.q3_set, Vq_Control.q4_set, Vq_Control.q5_set, Vq_Control.q6_set);
-            
+
             for (int i = 0; i < 50; i++)
             {
                 grid_v += 0.2;
@@ -1941,6 +1982,324 @@ namespace test_everything
         {
             listView1.Clear();
             InitialListView();
+        }
+
+        private void bt_TEST_FUnc_Click(object sender, EventArgs e)
+        {
+            Debug.Print("{0}", negative2complement(-127));
+        }
+        #region c# call py
+        public string run_cmd(string cmd, string args)
+        {
+            ProcessStartInfo start = new ProcessStartInfo();
+            start.FileName = @"C:\Users\johnny\AppData\Local\Programs\Python\Python36\python.exe";
+            start.Arguments = string.Format("\"{0}\" \"{1}\"", cmd, args);
+            start.UseShellExecute = false;// Do not use OS shell
+            start.CreateNoWindow = true; // We don't need new window
+            start.RedirectStandardOutput = true;// Any output, generated by application will be redirected back
+            start.RedirectStandardError = true; // Any error in standard output will be redirected back (for example exceptions)
+            using (Process process = Process.Start(start))
+            {
+                using (StreamReader reader = process.StandardOutput)
+                {
+                    string stderr = process.StandardError.ReadToEnd(); // Here are the exceptions from our Python script
+                    string result = reader.ReadToEnd(); // Here is the result of StdOut(for example: print "test")
+                    return result;
+                }
+            }
+        }
+
+        //呼叫python核心程式碼
+        public static void RunPythonScript(string sArgName, string args = "", params string[] teps)
+        {
+            Process p = new Process();//創造一個處理程序並且給他PY PATH cmd 
+            string path = System.AppDomain.CurrentDomain.SetupInformation.ApplicationBase + sArgName;// 獲得python檔案的絕對路徑（將檔案放在c#的debug資料夾中可以這樣操作）
+            p.StartInfo.FileName = @"C:\Users\johnny\AppData\Local\Programs\Python\Python36\python.exe";//沒有配環境變數的話，可以像我這樣寫python.exe的絕對路徑。如果配了，直接寫"python.exe"即可
+            string sArguments = path;
+            foreach (string sigstr in teps) //對於每個輸入的參數 
+            {
+                sArguments += " " + sigstr;//傳遞引數
+            }
+
+            sArguments += " " + args; //當每一個參數連結起來組合成一個指令 
+
+            p.StartInfo.Arguments = sArguments;
+
+            p.StartInfo.UseShellExecute = false;
+
+            p.StartInfo.RedirectStandardOutput = true;
+
+            p.StartInfo.RedirectStandardInput = true;
+
+            p.StartInfo.RedirectStandardError = true;
+
+            p.StartInfo.CreateNoWindow = true;
+
+            p.Start();
+            p.BeginOutputReadLine(); //讀取輸出 STR
+            p.OutputDataReceived += new DataReceivedEventHandler(p_OutputDataReceived);
+            Console.ReadLine();
+            p.WaitForExit();
+        }
+        //輸出列印的資訊
+        static void p_OutputDataReceived(object sender, DataReceivedEventArgs e)
+        {
+            if (!string.IsNullOrEmpty(e.Data))
+            {
+                AppendText(e.Data + Environment.NewLine);
+            }
+            else
+            {
+                Debug.Print("IsNullOrEmpty");
+
+            }
+        }
+        public delegate void AppendTextCallback(string text);
+        public static void AppendText(string text)
+        {
+            Console.WriteLine(text);     //此處在控制檯輸出.py檔案print的結果
+            Debug.Print(text);
+
+        }
+
+        static void Option1_ExecProcess()
+        {
+            // 1) Create Process Info
+            var psi = new ProcessStartInfo(); //創造一個處理程序 
+            psi.FileName = @"C:\Users\johnny\AppData\Local\Programs\Python\Python36\python.exe";
+
+            // 2) Provide script and arguments
+            var script = @"C:\Users\johnny\Desktop\PV\ttest.py";//(因為我沒放debug下，所以直接寫的絕對路徑,替換掉上面的路徑了)
+
+            var start = "2019-1-1";
+            var end = "2019-1-22";
+
+            psi.Arguments = $"\"{script}\" \"{start}\" \"{end}\"";  //輸入的變數總共包含了 程式碼的路徑 程式碼需要的變數兩個 
+
+            // 3) Process configuration
+            psi.UseShellExecute = false;  //不需要使用shell
+            psi.CreateNoWindow = true; //不需要顯示互動視窗 
+            psi.RedirectStandardOutput = true; //重新導向輸出 這樣子才可以拿到輸出 
+            psi.RedirectStandardError = true;  //錯誤同理 需要重新導向 
+
+            // 4) Execute process and get output
+            var errors = "";
+            var results = "";
+
+            using (var process = Process.Start(psi)) //啟動處理程序但是不知道在幹嘛 
+            {
+                errors = process.StandardError.ReadToEnd(); //
+                results = process.StandardOutput.ReadToEnd();  //接收輸出 
+            }
+
+            // 5) Display output
+
+
+
+            Debug.Print("ERRORS:");
+            Debug.Print(errors);
+            Debug.Print("");
+            Debug.Print("Results:");
+            Debug.Print(results);
+
+        }
+        #endregion
+
+        private void TEST_py_Click(object sender, EventArgs e)
+        {
+            /*
+            string[] strArr =new string[2];//引數列表 輸入進去的參數 
+            string sArguments = @"main.py";//腳本的名字 
+            strArr[0] = "2";
+            strArr[1] = "3";
+            string sss = "";
+            RunPythonScript(sArguments, "-u", sss);//輸入的腳本的名字  還有輸入的參數 
+            */
+            Option1_ExecProcess();
+
+
+        }
+
+        private void bt_write_Click(object sender, EventArgs e)
+        {
+            //將矩陣int 寫入文字檔 
+            // 將字串寫入TXT檔  list to txt 
+            StreamWriter str = new StreamWriter(@"C:\Users\johnny\source\repos\test_everything\ttteeesssttt.txt");
+            // 以下List 裡為int 型態
+            List<int> load = new List<int>();
+            load.Add(32);
+            // array 
+            int[] load_Array = { 1, 2, 3, 4, 5 };
+
+            //write
+            foreach (var i in load_Array)
+            {
+                str.WriteLine(i.ToString());
+            }
+            //string WriteWord = "cccc rewrite";
+            //str.WriteLine(WriteWord);
+            //str.WriteLine("bbb");
+            str.Close();
+        }
+
+        private void bt_read_txt_Click(object sender, EventArgs e)
+        {
+            //讀取每一行 放到string array 
+            string[] lines = System.IO.File.ReadAllLines(@"C:\Users\johnny\source\repos\test_everything\python_write.txt");
+            foreach (string line in lines)
+            {
+                // Use a tab to indent each line of the file.
+                Debug.Print("\t" + line);
+            }
+        }
+
+        private void button5_Click(object sender, EventArgs e)
+        {
+            DataTable aa = new DataTable();
+            try
+            {
+                aa = GetExcelData(@"C:\Users\johnny\source\repos\test_everything\test_everything\PV_OUTPUT.xlsx");
+            }
+            catch (Exception ex)
+            {
+
+                Debug.Print(ex.Message);
+            }
+
+
+            Debug.Print(aa.Rows[0][0].ToString());
+            Debug.Print(aa.Rows[1][0].ToString());
+            Debug.Print(aa.Rows[2][0].ToString());
+            Debug.Print(aa.Rows.Count.ToString());
+        }
+        private Stopwatch wath = new Stopwatch();
+        /// <summary>
+        /// 使用COM讀取Excel
+        /// </summary>
+        /// <param name="excelFilePath">路徑</param>
+        /// <returns>DataTabel</returns>
+        public DataTable GetExcelData(string excelFilePath)
+        {
+            Excel.Application app = new Excel.Application();
+            Excel.Sheets sheets;
+            Excel.Workbook workbook = null;
+            object oMissiong = System.Reflection.Missing.Value;
+            System.Data.DataTable dt = new System.Data.DataTable();
+            wath.Start();
+            try
+            {
+                if (app == null)
+                {
+                    return null;
+                }
+                workbook = app.Workbooks.Open(excelFilePath, oMissiong, oMissiong, oMissiong, oMissiong, oMissiong,
+                    oMissiong, oMissiong, oMissiong, oMissiong, oMissiong, oMissiong, oMissiong, oMissiong, oMissiong);
+                //將資料讀入到DataTable中——Start   
+                sheets = workbook.Worksheets;
+                Excel.Worksheet worksheet = (Excel.Worksheet)sheets.get_Item(1);//讀取第一張表
+                if (worksheet == null)
+                    return null;
+                string cellContent;
+                int iRowCount = worksheet.UsedRange.Rows.Count;
+                int iColCount = worksheet.UsedRange.Columns.Count;
+                Excel.Range range;
+                //負責列頭Start
+                DataColumn dc;
+                int ColumnID = 1;
+                range = (Excel.Range)worksheet.Cells[1, 1];
+                while (range.Text.ToString().Trim() != "")
+                {
+                    dc = new DataColumn();
+                    dc.DataType = System.Type.GetType("System.String");
+                    dc.ColumnName = range.Text.ToString().Trim();
+                    dt.Columns.Add(dc);
+
+                    range = (Excel.Range)worksheet.Cells[1, ++ColumnID];
+                }
+                //End
+                for (int iRow = 2; iRow <= iRowCount; iRow++)
+                {
+                    DataRow dr = dt.NewRow();
+                    for (int iCol = 1; iCol <= iColCount; iCol++)
+                    {
+                        range = (Excel.Range)worksheet.Cells[iRow, iCol];
+                        cellContent = (range.Value2 == null) ? "" : range.Text.ToString();
+                        dr[iCol - 1] = cellContent;
+                    }
+                    dt.Rows.Add(dr);
+                }
+                wath.Stop();
+                TimeSpan ts = wath.Elapsed;
+                //將資料讀入到DataTable中——End
+                return dt;
+            }
+            catch
+            {
+                return null;
+            }
+            finally
+            {
+                workbook.Close(false, oMissiong, oMissiong);
+                System.Runtime.InteropServices.Marshal.ReleaseComObject(workbook);
+                workbook = null;
+                app.Workbooks.Close();
+                app.Quit();
+                System.Runtime.InteropServices.Marshal.ReleaseComObject(app);
+                app = null;
+                GC.Collect();
+                GC.WaitForPendingFinalizers();
+            }
+        }
+        // 沒用到的副程式 
+        public DataTable GetExcelTableByOleDB(string strExcelPath, string tableName)
+        {
+            try
+            {
+                DataTable dtExcel = new DataTable();
+                //資料表
+                DataSet ds = new DataSet();
+                //獲取副檔名
+                string strExtension = System.IO.Path.GetExtension(strExcelPath);
+                string strFileName = System.IO.Path.GetFileName(strExcelPath);
+                //Excel的連線
+                OleDbConnection objConn = null;
+                switch (strExtension)
+                {
+                    case ".xls":
+                        objConn = new OleDbConnection("Provider=Microsoft.Jet.OLEDB.4.0;Data Source=" + strExcelPath + ";" + "Extended Properties=\"Excel 8.0;HDR=NO;IMEX=1;\"");
+                        break;
+                    case ".xlsx":
+                        objConn = new OleDbConnection("Provider=Microsoft.ACE.OLEDB.12.0;Data Source=" + strExcelPath + ";" + "Extended Properties=\"Excel 12.0;HDR=NO;IMEX=1;\"");
+                        break;
+                    default:
+                        objConn = null;
+                        break;
+                }
+                if (objConn == null)
+                {
+                    return null;
+                }
+                objConn.Open();
+                //獲取Excel中所有Sheet表的資訊
+                //System.Data.DataTable schemaTable = objConn.GetOleDbSchemaTable(System.Data.OleDb.OleDbSchemaGuid.Tables, null);
+                //獲取Excel的第一個Sheet表名
+                //string tableName = schemaTable.Rows[0][2].ToString().Trim();
+                string strSql = "select * from [" + tableName + "]";
+                //獲取Excel指定Sheet表中的資訊
+                OleDbCommand objCmd = new OleDbCommand(strSql, objConn);
+                OleDbDataAdapter myData = new OleDbDataAdapter(strSql, objConn);
+                myData.Fill(ds, tableName);//填充資料
+                objConn.Close();
+                //dtExcel即為excel檔案中指定表中儲存的資訊
+                dtExcel = ds.Tables[tableName];
+                return dtExcel;
+            }
+            catch(Exception ex)
+            {
+
+                Debug.Print(ex.Message);
+                return null;
+            }
         }
     }
 }

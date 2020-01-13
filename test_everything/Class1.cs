@@ -10,26 +10,33 @@ namespace test_everything
     {
         //delegate like a func 
         public delegate void die();
-        public event die playerdie ;
+        public event die playerdie;
         private int hp = 100;
-        public void hurt()
+        public string name { get; set; }
+        private int myVar;
+
+
+
+        public void Hurt()
         {
-            hp = hp - 30;
+            hp -= 30;
             Console.WriteLine($"hp : {hp}");
-            if (hp<0)
+            if (hp < 0)
             {
-                if (playerdie!= null)
+                if (playerdie != null)
                 {
                     playerdie();
                 }
             }
         }
     }
-    public class viewer 
+    public class viewer
     {
         
 
-        public void see_people_die()
+
+
+        public void See_People_Die()
         {
             Console.WriteLine("viewer see_people_die");
         }

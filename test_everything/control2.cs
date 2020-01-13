@@ -9,7 +9,7 @@ namespace test_everything
 
     class control2
     {
-        //    回傳P_tr 
+        //輸入遲滯曲線旗標(=1) 輸出功率 上一次頻率 上一次p  基本p 電網頻率 ...12個設定點     回傳P_tr (輸出功率)
         public static void Pf_control(ref double Hys_line, ref double p_tr, ref double grid_f_last, ref double p_val_last, double bat_rate_p, double grid_f, double fset1, double fset2, double fset3, double fset4, double fset5, double fset6, double pset1, double pset2, double pset3, double pset4, double pset5, double pset6)
         {
 
@@ -123,7 +123,7 @@ namespace test_everything
             }
             
         }
-        //OK    回傳q_tr 輸出q 
+        //  輸入遲滯曲線旗標(=1) 輸出q 上一次電壓 上一次q 基本q基本v  ...12個設定點   回傳q_tr 輸出q 
         public static void Vq_control(ref double Hys_line, ref double q_tr, ref double grid_v_last, ref double q_val_last, double bat_rate_q,double base_v, double grid_v, double vset1, double vset2, double vset3, double vset4, double vset5, double vset6, double qset1, double qset2, double qset3, double qset4, double qset5, double qset6)
         { /////需定義一開始為藍線和儲存Grid_v_last值
             //int Hys_line = 1;              ///////1為藍線    0為橘線  2為區域
