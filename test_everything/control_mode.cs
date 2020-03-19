@@ -8,7 +8,7 @@ namespace test_everything
 {
     class Grid_Control
     {
-        #region 龍井新增
+        #region 龍井新增 電網控制器變數 
         public static int flag = 0;     ///穩定輸出 1、平滑化2 
         public static double p_out = 0;         //////目標輸出實功
         public static double q_out = 0;         //////目標輸出虛功
@@ -20,7 +20,17 @@ namespace test_everything
         public static int combine_mode_n = 0;
         public static int mode = 0;  ///目前模式:0:停止、1:穩定輸出、2:平滑化、3:需量、4:排程 
         public static int mode_last = 0;      ///////目前排程模式
-        public static double p_diff = 0;
+        #region 平滑化
+        public static double p_diff = 0; //需要補償的功率
+        public static double p_tr = 0;
+        public static double p_last = 0;
+        public static double meter_p = 0;       ///////pv輸出功率
+        public static double bat_p = 0;  //儲能系統現在的功率輸出
+        public static double p_variance = 2; //平滑化的功率變動率 
+        public static double pv_p_rate = 5000;
+
+        #endregion
+
         public static double q_diff = 0;
         public static ushort p_rtu = 0;
         public static ushort q_rtu = 0;
@@ -32,7 +42,7 @@ namespace test_everything
         ///////////
         //public static double pv_p_rate = 2000;
         public static double[] meter_p_last = new double[2] { 0, 0 };
-        public static double meter_p = 0;       ///////pv輸出功率
+        
         public static double PCS_p = 0;       ///////PCS輸出功率
         public static double Grid_f = 0;       ///////PCS輸出功率
         public static double Grid_v = 0;
@@ -47,7 +57,7 @@ namespace test_everything
         public static double p_ref = 0;         //////目標輸出實功
         public static double q_ref = 0;         //////目標輸出虛功
         public static int limit_condition = 0;  //////輸出限制條件
-        public static double p_tr = 0;
+        
         //////平滑化防止逆送共用
         public static double Grid_v_test = 21600;
     }
@@ -108,6 +118,7 @@ namespace test_everything
     }
     class control_mode
     {
+
         public static void fp_Hys_control(double grid_f) // return  Grid_Control.p_diff = FR_Hys_Control.p_base * p_val * 0.01;
         {
 

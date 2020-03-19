@@ -21,11 +21,42 @@ using System.IO; // 讀取寫入文字檔
 using System.Data.OleDb; //讀EXCEL
 using Excel = Microsoft.Office.Interop.Excel;
 
+// MongoDB1 
+using MongoDB.Bson;
+using MongoDB.Driver;
+// watchdog
+using System.IO.Pipes; // for inter process communication
+using System.Runtime.InteropServices;
+using System.Security.Principal; // for TokenImpersonationLevel EnumerationPrincipal
+
 namespace test_everything
 {
     public partial class Form1 : Form
     {
 
+        #region MongoDB2 宣告變數 
+        private MongoClient dbconn;
+        private IMongoDatabase db;
+        private MongoClient ems_dbconn;
+        private IMongoDatabase ems_db;
+        //private string mlabconn = "mongodb://localhost:27017/?wtimeoutMS=200";  //mlab提供的連線字串 
+        //private string mlabconn = "mongodb://tsai_user:0000@localhost:27017";
+        #endregion
+        #region watchdog1       
+        NamedPipeClientStream pipeClient;                                                 /////watchdog宣告變數
+        StreamString ss;
+        string showstr = "";
+        ThreadingTimer _ThreadTimer0 = null;
+        int count = 0;
+        public delegate void PrintHandler(TextBox tb, string text);
+
+        #endregion
+        #region 排程輸出測試 1
+        DateTime time1 = DateTime.Now;
+        //做 start end物件 
+        public static List<Start_End> sche_obj = new List<Start_End>();
+
+        #endregion
 
 
         #region 宣告變數  串列連結  Master List 
@@ -52,14 +83,330 @@ namespace test_everything
         #endregion
         public Form1()
         {
+            //#region Watchdog2
+            //pipeClient =
+            //   new NamedPipeClientStream(".", "namepipe",
+            //       PipeDirection.InOut, PipeOptions.None,
+            //       TokenImpersonationLevel.Impersonation);
+            //#endregion
+            //#region watchdog3
+            //Thread.Sleep(500);
+            //Start();
 
+            //Read_Data_Click(this, null);
+
+            //#endregion
+            #region Initial
             InitializeComponent();
             bt_test_read_pcs.Enabled = false;
             InitialListView();
             textBox_q.Enabled = false;
             textBox_p.Enabled = false;
+            #endregion
+            #region MongoDB3 連線建立 連線設定
+
+            ////Local端，MongoDB連線Timeout設定
+            MongoClientSettings settings = new MongoClientSettings();
+            settings.WaitQueueSize = int.MaxValue;
+            settings.ConnectTimeout = new TimeSpan(0, 0, 0, 0, 1000);
+            settings.ServerSelectionTimeout = new TimeSpan(0, 0, 0, 0, 1000);
+            settings.SocketTimeout = new TimeSpan(0, 0, 0, 0, 1000);
+            settings.WaitQueueTimeout = new TimeSpan(0, 0, 0, 0, 0100);
+            settings.Server = new MongoServerAddress("localhost");
+            this.dbconn = new MongoClient(settings);
+            //this.db = dbconn.GetDatabase("Tsai_Test");  //資料庫名稱 
+            this.db = dbconn.GetDatabase("test1");  //資料庫名稱 
+                                                    //this.dbconn = new MongoClient(mlabconn);   //設立連線  
+                                                    //this.db = dbconn.GetDatabase("solar");  //資料庫名稱   
+
+
+            ////Server端，MongoDB連線Timeout設定
+            //MongoIdentity identity = new MongoInternalIdentity("admin", "root");
+            //MongoIdentityEvidence evidence = new PasswordEvidence("pc152");
+            //MongoClientSettings esettings = new MongoClientSettings();
+            //esettings.WaitQueueSize = int.MaxValue;
+            //esettings.ConnectTimeout = new TimeSpan(0, 0, 0, 0, 200);
+            //esettings.ServerSelectionTimeout = new TimeSpan(0, 0, 0, 0, 200);
+            //esettings.SocketTimeout = new TimeSpan(0, 0, 0, 0, 200);
+            //esettings.WaitQueueTimeout = new TimeSpan(0, 0, 0, 0, 200);
+            ////esettings.Server = new MongoServerAddress("140.118.172.75");
+            //esettings.Server = new MongoServerAddress("192.168.2.10");
+            //esettings.Credential = new MongoCredential(null, identity, evidence);
+            //this.ems_dbconn = new MongoClient(esettings);
+            //this.ems_db = ems_dbconn.GetDatabase("chang");  //資料庫名稱 
+            
+            #endregion
+
+            #region 排程輸出測試 2
+            //timer_sche.Enabled = true;
+            //讀取文字檔案 
+            //讀取每一行 放到string array  
+            string[] lines = System.IO.File.ReadAllLines(@"D:\test_everything\test_everything\bin\Debug\shcedule.txt");
+            int[] output = new int[24];
+            int count = 0;
+            foreach (string line in lines)
+            {
+                // Use a tab to indent each line of the file.
+                Debug.Print("\t" + line);
+                output[count] = Int32.Parse(line);
+                count++;
+            }
+
+            //把讀到的每一個功率排程 存放到list，每一個相差10秒 
+
+            count = 0;
+            DateTime starttime = time1;
+            DateTime endtime = starttime.AddSeconds(10);
+            foreach (var out1 in output)
+            {
+
+                sche_obj.Add(new Start_End(starttime, endtime, out1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0));
+                starttime = starttime.AddSeconds(10);
+                endtime = endtime.AddSeconds(10);
+                count++;
+            }
+            //確認是否每個功率都有存入 list
+            lv_Print(listView1, "確認是否每個功率都有存入 list");
+            foreach (var item1 in sche_obj)
+            {
+                lv_Print(listView1, item1.ToString(), item1.ToMode());
+            }
+            //比較時間 知道到地幾個
+
+
+            //輸出
+            lv_Print(listView1, time1.ToString());
+            #endregion
+        }
+        #region watchdog4
+        private void Start()
+        {
+            string currentName = new StackTrace(true).GetFrame(0).GetMethod().Name;
+            this._ThreadTimer0 = new ThreadingTimer(new System.Threading.TimerCallback(WatchDog), currentName, 0, 1000);
+        }
+        private void WatchDog(object state)
+        {
+            count = count + 1;
+            if (count >= 10)
+            {
+                count = 0;
+            }
+            try
+            {
+                using (var pipe = new NamedPipeClientStream(".", "p", PipeDirection.InOut))
+                {
+                    using (var stream = new StreamWriter(pipe))
+                    {
+                        pipe.Connect(200);
+                        stream.Write(count.ToString());
+                        Print(textBox_wdt, DateTime.Now.ToString());
+
+                    }
+
+                }
+            }
+            catch { }
+        }
+        public class StreamString
+        {
+            private Stream ioStream;
+            private UnicodeEncoding streamEncoding;
+
+            public StreamString(Stream ioStream)
+            {
+                this.ioStream = ioStream;
+                streamEncoding = new UnicodeEncoding();
+            }
+
+            public string ReadString()
+            {
+                try
+                {
+                    int len;
+                    len = ioStream.ReadByte() * 256;
+                    len += ioStream.ReadByte();
+                    byte[] inBuffer = new byte[len];
+                    ioStream.Read(inBuffer, 0, len);
+
+                    return streamEncoding.GetString(inBuffer);
+                }
+                catch { return "error"; }
+            }
+
+            public int WriteString(string outString)
+            {
+                byte[] outBuffer = streamEncoding.GetBytes(outString);
+                int len = outBuffer.Length;
+                if (len > UInt16.MaxValue)
+                {
+                    len = (int)UInt16.MaxValue;
+                }
+                try
+                {
+                    ioStream.WriteByte((byte)(len / 256));
+                    ioStream.WriteByte((byte)(len & 255));
+                    ioStream.Write(outBuffer, 0, len);
+                    ioStream.Flush();
+                }
+                catch { }
+                return outBuffer.Length + 2;
+            }
+        }
+        #endregion
+        //////////Textbox用於執行續或委派時需用之方法
+        public static void Print(TextBox tb, string text)
+        {
+            //判斷這個TextBox的物件是否在同一個執行緒上
+            if (tb.InvokeRequired)
+            {
+                PrintHandler ph = new PrintHandler(Print);
+                tb.Invoke(ph, tb, text);
+            }
+            else
+            {
+                tb.Text = text;
+            }
+        }
+        #region MongoDB4 儲存
+        #region Event_Log
+        public class Event_Log : IComparable<Event_Log>
+        {
+            public DateTime time;
+            public string id;
+            public string type;
+            public string _event;
+            public string checktime;
+            public string returntime;
+            public string level;
+
+            public DateTime Time
+            {
+                get { return time; }
+                set { time = value; }
+            }
+            public string ID
+            {
+                get { return id; }
+                set { id = value; }
+            }
+            public string Type
+            {
+                get { return type; }
+                set { type = value; }
+            }
+            public string _Event
+            {
+                get { return _event; }
+                set { _event = value; }
+            }
+            public string Checktime
+            {
+                get { return checktime; }
+                set { checktime = value; }
+            }
+            public string Returntime
+            {
+                get { return returntime; }
+                set { returntime = value; }
+            }
+            public string Level
+            {
+                get { return level; }
+                set { level = value; }
+            }
+            public string ToString1()
+            {
+                return time.ToString();
+            }
+            public Event_Log(DateTime time, string id, string _event, string returntime)
+            {
+                this.time = time;
+                this.id = id;
+                //this.type = type;
+                this._event = _event;
+                //this.checktime = checktime;
+                this.returntime = returntime;
+                //this.level = level;
+            }
+            int IComparable<Event_Log>.CompareTo(Event_Log other)
+            {
+                throw new NotImplementedException();
+            }
+        }           /////事件紀錄
+        public class SchComparerby : IComparer<Event_Log>
+        {
+            //實作Compare方法
+            //依Speed由小排到大。
+            public int Compare(Event_Log x, Event_Log y)
+            {
+                if (x.Time < y.Time)
+                    return -1;
+                if (x.Time > y.Time)
+                    return 1;
+                //該段為Speed相等時才會由Power比較
+                //依power由小排到大
+                return 0;
+            }
+        }
+        public List<Event_Log> event_log = new List<Event_Log>();
+        class RESET_Error
+        {
+            public static double error_count = 0;
+            public static double count = 0;
+            public static int EMS_Error = 0;
+            public static int EMS_Error1 = 0;
+            public static bool EMS_Flag = false;
+        }
+        #endregion
+
+        private void Mongo_Reset(string Slave, string error_msg, DateTime time)
+        {
+            try
+            {//嘗試在列表增加一個事件 
+                event_log.Add(new Event_Log(time, Slave, error_msg, "null"));
+                if (event_log.Count > 50) //讓程式LIST裡面暫存的 事件保持最多50個
+                {
+                    event_log.RemoveAt(0);//移除指定的資料 
+                }
+            }
+            catch
+            {
+                Console.WriteLine("Reset Error");
+            }
+            try
+            { //
+                DateTime last_event = DateTime.Now;
+                string event_str;
+                var sort = Builders<BsonDocument>.Sort.Descending("time"); //根據時間來排列資料，最新的放在前面 降序排列
+                var coll = db.GetCollection<BsonDocument>("alarm");  //指定寫入給"categories"此collection  
+                var filter = Builders<BsonDocument>.Filter.Eq("ID", Slave) & Builders<BsonDocument>.Filter.Eq("event", error_msg);
+
+                var cursor = coll.Find(filter).Sort(sort).Limit(1).ToList(); // 轉換成list 等等可以疊代
+                foreach (var event_log in cursor)
+                { //解析接收到的資料 ，接收到的資料是一個的字典 
+                    last_event = (DateTime)event_log.GetValue("time");
+                    event_str = event_log.GetValue("event").ToString();
+                }
+                var filter2 = Builders<BsonDocument>.Filter.Eq("ID", Slave) & Builders<BsonDocument>.Filter.Eq("event", error_msg) & Builders<BsonDocument>.Filter.Eq("time", last_event);
+                var update = Builders<BsonDocument>.Update.Set("returntime", DateTime.Now)
+                                                          .Set("EMS_RESET_Error", RESET_Error.EMS_Error);
+                coll.UpdateOne(filter2, update); //更新現有資料 
+                //coll.Find(filter).Sort(sort)
+            }
+            catch
+            {
+                Console.WriteLine("Reset Error");
+            }
 
         }
+
+        private void mongo_test(DateTime time_now)
+        {
+            int time_offset = 8;
+            var coll = db.GetCollection<BsonDocument>("coll_1");  //指定寫入給"categories"此collection  
+            coll.InsertOne(new BsonDocument { { "time", time_now.AddHours(time_offset) } });
+        }
+        #endregion
         private void InitialListView()//初始化ListView的格式大小 
         {
             listView1.View = View.Details;
@@ -116,7 +463,7 @@ namespace test_everything
             if (list.InvokeRequired)
             {
                 Listview_Print ph = new Listview_Print(lv_Print);
-                list.Invoke(ph, list, time, message);
+                list.Invoke(ph, list, time, message);  //我覺得這裡不需要 time
             }
             else
             {
@@ -258,6 +605,9 @@ namespace test_everything
         //可以在副程式之外  創立物件 
 
 
+
+
+
         private void bt_start_Click(object sender, EventArgs e)
         { //副程式目的  :: 建立一個master rtu 並且寫入資料 
           //設定serialPort參數 柯華pcs參數 传输模式：RTU 波特率：默认为 9600bps，并可设置为 2400，4800，19200bps 校验位：无校验 数据位：8bit 停止位：1bit 
@@ -303,6 +653,8 @@ namespace test_everything
             //timer1.Enabled = true;
             //timer2.Enabled = true;
 
+
+            Debug.Print("dsadas");
         }
 
         //
@@ -416,7 +768,7 @@ namespace test_everything
                     //double value = (double)register[i] * 10.0 / 32767;
                     //listAI[i].Text = value.ToString("0.00");
                 }
-                int a = 0;
+
                 //read AO(4xxxx)
                 //ushort[] holdingregister = master.ReadHoldingRegisters(slaveID, startAddress, numofPoints);
                 //for (int i = 0; i < numofPoints; i++)
@@ -447,7 +799,7 @@ namespace test_everything
                 if (exception.Source.Equals("nModbusPC"))
                 {
                     string str = exception.Message;
-                    int FunctionCode = 0;
+
                     string ExceptionCode = "0";
 
                     //str = str.Remove(0, str.IndexOf("\r\n") + 17);
@@ -511,17 +863,23 @@ namespace test_everything
         // ???  不能夠開一個平行緒  Thread wait = new Thread(new ThreadStart(bt_test_thead_Click)); 
         // 要傳入的變數 ,延遲多久開始執行,  每隔多久執行一次  ，所以應該是開一個平行緒一直重複的在做這些事情 
 
-
+        int c = 0;
         private void bt_test_thead_Click(object sender, EventArgs e)
         {
+            ///
+            /// ThreadingTimer  使用方法  先創造物件 指定函式 一定要輸入一個名稱 ?? 指定延遲  指定執行週期
+            string name = "abc_name";
+            this._ThreadTimer = new ThreadingTimer(new TimerCallback(loop_print), name, 0, 1000);  /////每50ms判斷一次是否換秒
+            ////
             int x = 188;
-            Debug.Print("into bt_test_thead_Click{0}", x);
+            Debug.Print("into bt_test_thead_Click{0}", x); //印出變數
             Debug.Print($"into bt_test_thead_Click{x} type{x.GetType()}");
             Thread wait = new Thread(new ThreadStart(a_print));
-
+            Thread wait2 = new Thread(new ThreadStart(a_print));
             Thread.Sleep(1000);
             Debug.Print("等1秒後 ");
             wait.Start();
+            wait.Join(); ////等待所有平行緒執行完畢後才會繼續往下執行 ， 要其他平行緒等待著一個平行緒執行完才會繼續執行 
 
             Debug.Print("Wait之後 ");
             Thread.Sleep(1000);
@@ -533,6 +891,15 @@ namespace test_everything
             Debug.Print("  ppppppppp");
             Thread.Sleep(3000);
             Debug.Print(" 等3秒後  ppppppppp");
+        }
+        private void loop_print(object state)
+        {
+            Debug.Print("loop");
+            c++;
+            if (c>5)
+            {
+                _ThreadTimer.Dispose();
+            }
         }
 
 
@@ -2061,15 +2428,15 @@ namespace test_everything
             Debug.Print(text);
 
         }
-
+        //c# call py 主要功能副程式 
         static void Option1_ExecProcess()
         {
             // 1) Create Process Info
             var psi = new ProcessStartInfo(); //創造一個處理程序 
             psi.FileName = @"C:\Users\johnny\AppData\Local\Programs\Python\Python36\python.exe";
 
-            // 2) Provide script and arguments
-            var script = @"C:\Users\johnny\Desktop\PV\ttest.py";//(因為我沒放debug下，所以直接寫的絕對路徑,替換掉上面的路徑了)
+            // 2) 提供路境以及變數 
+            var script = @"E:\DaysBetweenDates.py";//(因為我沒放debug下，所以直接寫的絕對路徑,替換掉上面的路徑了)
 
             var start = "2019-1-1";
             var end = "2019-1-22";
@@ -2087,6 +2454,7 @@ namespace test_everything
             var results = "";
 
             using (var process = Process.Start(psi)) //啟動處理程序但是不知道在幹嘛 
+                                                     //using 陳述式 執行完後會釋放資源 
             {
                 errors = process.StandardError.ReadToEnd(); //
                 results = process.StandardOutput.ReadToEnd();  //接收輸出 
@@ -2101,6 +2469,7 @@ namespace test_everything
             Debug.Print("");
             Debug.Print("Results:");
             Debug.Print(results);
+            //Debug.Print(results);
 
         }
         #endregion
@@ -2124,22 +2493,25 @@ namespace test_everything
         {
             //將矩陣int 寫入文字檔 
             // 將字串寫入TXT檔  list to txt 
-            StreamWriter str = new StreamWriter(@"C:\Users\johnny\source\repos\test_everything\ttteeesssttt.txt");
-            // 以下List 裡為int 型態
-            List<int> load = new List<int>();
-            load.Add(32);
+            StreamWriter str = new StreamWriter(@"D:\test_everything\test_everything\bin\Debug\ttteeesssttt.txt");
+
             // array 
             int[] load_Array = { 1, 2, 3, 4, 5 };
-
             //write
             foreach (var i in load_Array)
             {
                 str.WriteLine(i.ToString());
             }
+            str.WriteLine(DateTime.Now.ToString("yyyy/MM/dd hh:mm:ss fff  "));
+            str.Close();
             //string WriteWord = "cccc rewrite";
             //str.WriteLine(WriteWord);
             //str.WriteLine("bbb");
-            str.Close();
+
+
+            // 以下List 裡為int 型態
+            List<int> load = new List<int>();
+            load.Add(32);
         }
 
         private void bt_read_txt_Click(object sender, EventArgs e)
@@ -2158,7 +2530,7 @@ namespace test_everything
             DataTable aa = new DataTable();
             try
             {
-                aa = GetExcelData(@"C:\Users\johnny\source\repos\test_everything\test_everything\PV_OUTPUT.xlsx");
+                aa = GetExcelData(@"D:\test_everything\test_everything\PV_OUTPUT.xlsx");
             }
             catch (Exception ex)
             {
@@ -2171,7 +2543,216 @@ namespace test_everything
             Debug.Print(aa.Rows[1][0].ToString());
             Debug.Print(aa.Rows[2][0].ToString());
             Debug.Print(aa.Rows.Count.ToString());
+            float[] pv_out = new float[aa.Rows.Count];
+            for (int i = 0; i < aa.Rows.Count; i++)
+            {
+                pv_out[i] = Convert.ToSingle(aa.Rows[i][0]);
+            }
+            Debug.Print(pv_out[0].ToString());
+            Debug.Print(pv_out[1].ToString());
+
+            // 將字串寫入TXT檔  arrat to txt 
+            StreamWriter str = new StreamWriter(@"D:\test_everything\test_everything\pv_out.txt");
+            //write
+            for (int i = 0; i < aa.Rows.Count; i++)
+            {
+                str.WriteLine(pv_out[i]);
+            }
+            str.Close();
         }
+
+        #region  排程的物件 可以比較 
+        /////定義class 
+
+        /* 增加排程的方法 
+         * Start_List.Add(new Start_End(starttime, endtime, mode, fixed_p, fixed_q, steady_value, smooth_limit, back_p, soc_max, soc_min, ramp_up, ramp_down, p_base, q_base, fp_base, combine_mode, c_parameters));
+                    _Hour.SelectedIndex = endtime.Hour;
+                    _Minute.SelectedIndex = endtime.Minute;
+            //自動排序
+                Start_List.Sort((x, y) => { return x.Start_time.CompareTo(y.Start_time); });
+            /////比較新排程是否有重疊 如果沒有重疊就加入排程 
+                IEnumerable<Start_End> filteringQuery =
+                from c in Start_List
+                where (c.End_Time > starttime && starttime >= c.Start_time) || (c.Start_time < endtime && c.End_Time >= endtime)
+                select c;
+                ////若無重疊排程，加入新排程，排程時間自動延續
+                int repeat_time = filteringQuery.Count();
+                if (repeat_time == 0)
+                {
+                    Start_List.Add(new Start_End(starttime, endtime, mode, fixed_p, fixed_q, steady_value, smooth_limit, back_p, soc_max, soc_min, ramp_up, ramp_down, p_base, q_base, fp_base, combine_mode, c_parameters));
+                    _Hour.SelectedIndex = endtime.Hour;
+                    _Minute.SelectedIndex = endtime.Minute;
+                }
+                else
+                {
+                    MessageBox.Show("Error");
+                }
+         */
+        public class Start_End : IComparable<Start_End>
+        {
+
+            private DateTime start_time;
+            private DateTime end_time;
+            private int mode;
+            private double smooth_limit;
+            private double steady_value;
+            private double fixed_p;
+            private double back_p;
+            private double soc_max;
+            private double soc_min;
+            private double ramp_up;
+            private double ramp_down;
+            private double p_base;
+            private double fp_base;
+            private double q_base;
+            private double combine_mode;
+            private double c_parameters;
+            private double fixed_q;
+
+            #region 變數 get set 
+            public DateTime Start_time
+            {
+                get { return start_time; }
+                set { start_time = value; }
+            }
+            public DateTime End_Time
+            {
+                get { return end_time; }
+                set { end_time = value; }
+            }
+            public int Mode
+            {
+                get { return mode; }
+                set { mode = value; }
+            }
+            public double Fixed_P
+            {
+                get { return fixed_p; }
+                set { fixed_p = value; }
+            }
+            public double Fixed_Q
+            {
+                get { return fixed_q; }
+                set { fixed_q = value; }
+            }
+            public double P_Base
+            {
+                get { return p_base; }
+                set { p_base = value; }
+            }
+            public double FP_Base
+            {
+                get { return fp_base; }
+                set { fp_base = value; }
+            }
+            public double Q_Base
+            {
+                get { return q_base; }
+                set { q_base = value; }
+            }
+            public double Steady_Value
+            {
+                get { return steady_value; }
+                set { steady_value = value; }
+            }
+            public double Smooth_Limit
+            {
+                get { return smooth_limit; }
+                set { smooth_limit = value; }
+            }
+            public double Back_P
+            {
+                get { return back_p; }
+                set { back_p = value; }
+            }
+            public double SOC_max
+            {
+                get { return soc_max; }
+                set { soc_min = value; }
+            }
+            public double SOC_min
+            {
+                get { return soc_min; }
+                set { soc_min = value; }
+            }
+            public double Ramp_Up
+            {
+                get { return ramp_up; }
+                set { ramp_up = value; }
+            }
+            public double Ramp_Down
+            {
+                get { return ramp_down; }
+                set { ramp_down = value; }
+            }
+            public double Combine_mode
+            {
+                get { return combine_mode; }
+                set { combine_mode = value; }
+            }
+
+            public double C_parameters
+            {
+                get { return c_parameters; }
+                set { c_parameters = value; }
+            }
+            #endregion
+            //建購子
+            public Start_End(DateTime start_time, DateTime end_time, int mode, double fixed_p, double fixed_q, double steady_value, double smooth_limit, double back_p, double soc_max, double soc_min, double ramp_up, double ramp_down, double p_base, double q_base, double fp_base, double combine_mode, double c_parameters)
+            {
+                this.start_time = start_time;
+                this.end_time = end_time;
+                this.mode = mode;
+                this.fixed_p = fixed_p;
+                this.fixed_q = fixed_q;
+                this.steady_value = steady_value;
+                this.smooth_limit = smooth_limit;
+                this.back_p = back_p;
+                this.ramp_up = ramp_up;
+                this.ramp_down = ramp_down;
+                this.soc_max = soc_max;
+                this.soc_min = soc_min;
+                this.p_base = p_base;
+                this.q_base = q_base;
+                this.c_parameters = c_parameters;
+                this.combine_mode = combine_mode;
+                this.fp_base = fp_base;
+            }
+            //這個物件的功能  可以查看開始結束時間跟功能 
+            public override string ToString()
+            {
+                return start_time.ToString("HH:mm") + "~" + end_time.ToString("HH:mm");
+            }
+            public string ToMode()
+            {
+                return Mode.ToString();
+            }
+
+            int IComparable<Start_End>.CompareTo(Start_End other)
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        public class SchComparerby1 : IComparer<Start_End>
+        {
+            //實作Compare方法
+            //依Speed由小排到大。
+            public int Compare(Start_End x, Start_End y)
+            {
+                if (x.Start_time < y.Start_time)
+                    return -1;
+                if (x.Start_time > y.Start_time)
+                    return 1;
+                //該段為Speed相等時才會由Power比較
+                //依power由小排到大
+                return 0;//兩個開始的時間一樣，平等 
+            }
+
+
+        }
+        #endregion
+        #region 讀取Excel 
         private Stopwatch wath = new Stopwatch();
         /// <summary>
         /// 使用COM讀取Excel
@@ -2250,6 +2831,7 @@ namespace test_everything
                 GC.WaitForPendingFinalizers();
             }
         }
+        #endregion
         // 沒用到的副程式 
         public DataTable GetExcelTableByOleDB(string strExcelPath, string tableName)
         {
@@ -2294,12 +2876,39 @@ namespace test_everything
                 dtExcel = ds.Tables[tableName];
                 return dtExcel;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
 
                 Debug.Print(ex.Message);
                 return null;
             }
+        }
+
+        private void bt_test_db_Click(object sender, EventArgs e)
+        {
+            DateTime time_command_now = DateTime.Now;
+            mongo_test(time_command_now);
+        }
+
+        private void timer_sche_Tick(object sender, EventArgs e)
+        {
+            #region 排程輸出測試 3
+            foreach (var item1 in sche_obj)
+            {
+                //if 時間對 就輸出 
+                if (item1.End_Time > DateTime.Now && DateTime.Now >= item1.Start_time)
+                {
+                    lv_Print(listView1, DateTime.Now.ToString(), item1.ToMode());
+                }
+                
+                
+            }
+            #endregion
+        }
+
+        private void Form1_Load(object sender, EventArgs e)
+        {
+
         }
     }
 }
