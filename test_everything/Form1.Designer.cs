@@ -61,6 +61,8 @@
             this.bt_test_db = new System.Windows.Forms.Button();
             this.textBox_wdt = new System.Windows.Forms.TextBox();
             this.timer_sche = new System.Windows.Forms.Timer(this.components);
+            this.button6 = new System.Windows.Forms.Button();
+            this.button7 = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // button1
@@ -310,7 +312,7 @@
             // 
             // bt_write
             // 
-            this.bt_write.Location = new System.Drawing.Point(610, 228);
+            this.bt_write.Location = new System.Drawing.Point(611, 210);
             this.bt_write.Name = "bt_write";
             this.bt_write.Size = new System.Drawing.Size(74, 44);
             this.bt_write.TabIndex = 147;
@@ -320,7 +322,7 @@
             // 
             // bt_read_txt
             // 
-            this.bt_read_txt.Location = new System.Drawing.Point(703, 228);
+            this.bt_read_txt.Location = new System.Drawing.Point(678, 169);
             this.bt_read_txt.Name = "bt_read_txt";
             this.bt_read_txt.Size = new System.Drawing.Size(74, 44);
             this.bt_read_txt.TabIndex = 148;
@@ -330,7 +332,7 @@
             // 
             // button5
             // 
-            this.button5.Location = new System.Drawing.Point(703, 295);
+            this.button5.Location = new System.Drawing.Point(691, 210);
             this.button5.Name = "button5";
             this.button5.Size = new System.Drawing.Size(74, 44);
             this.button5.TabIndex = 149;
@@ -340,7 +342,7 @@
             // 
             // bt_test_db
             // 
-            this.bt_test_db.Location = new System.Drawing.Point(615, 295);
+            this.bt_test_db.Location = new System.Drawing.Point(611, 260);
             this.bt_test_db.Name = "bt_test_db";
             this.bt_test_db.Size = new System.Drawing.Size(58, 44);
             this.bt_test_db.TabIndex = 150;
@@ -350,7 +352,7 @@
             // 
             // textBox_wdt
             // 
-            this.textBox_wdt.Location = new System.Drawing.Point(624, 358);
+            this.textBox_wdt.Location = new System.Drawing.Point(604, 392);
             this.textBox_wdt.Name = "textBox_wdt";
             this.textBox_wdt.Size = new System.Drawing.Size(110, 25);
             this.textBox_wdt.TabIndex = 151;
@@ -361,11 +363,33 @@
             this.timer_sche.Interval = 10000;
             this.timer_sche.Tick += new System.EventHandler(this.timer_sche_Tick);
             // 
+            // button6
+            // 
+            this.button6.Location = new System.Drawing.Point(679, 260);
+            this.button6.Name = "button6";
+            this.button6.Size = new System.Drawing.Size(74, 44);
+            this.button6.TabIndex = 152;
+            this.button6.Text = "寫入EXcel";
+            this.button6.UseVisualStyleBackColor = true;
+            this.button6.Click += new System.EventHandler(this.button6_Click);
+            // 
+            // button7
+            // 
+            this.button7.Location = new System.Drawing.Point(611, 310);
+            this.button7.Name = "button7";
+            this.button7.Size = new System.Drawing.Size(74, 38);
+            this.button7.TabIndex = 153;
+            this.button7.Text = "更新資料庫 ";
+            this.button7.UseVisualStyleBackColor = true;
+            this.button7.Click += new System.EventHandler(this.button7_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(812, 433);
+            this.Controls.Add(this.button7);
+            this.Controls.Add(this.button6);
             this.Controls.Add(this.textBox_wdt);
             this.Controls.Add(this.bt_test_db);
             this.Controls.Add(this.button5);
@@ -435,6 +459,8 @@
         private System.Windows.Forms.Button bt_test_db;
         private System.Windows.Forms.TextBox textBox_wdt;
         private System.Windows.Forms.Timer timer_sche;
+        private System.Windows.Forms.Button button6;
+        private System.Windows.Forms.Button button7;
     }
 }
 

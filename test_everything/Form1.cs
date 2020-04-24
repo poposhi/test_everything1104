@@ -83,19 +83,19 @@ namespace test_everything
         #endregion
         public Form1()
         {
-            //#region Watchdog2
-            //pipeClient =
-            //   new NamedPipeClientStream(".", "namepipe",
-            //       PipeDirection.InOut, PipeOptions.None,
-            //       TokenImpersonationLevel.Impersonation);
-            //#endregion
-            //#region watchdog3
-            //Thread.Sleep(500);
-            //Start();
+            #region Watchdog2
+            pipeClient =
+               new NamedPipeClientStream(".", "namepipe",
+                   PipeDirection.InOut, PipeOptions.None,
+                   TokenImpersonationLevel.Impersonation);
+            #endregion
+            #region watchdog3
+            Thread.Sleep(500);
+            Start();
 
-            //Read_Data_Click(this, null);
+            
 
-            //#endregion
+            #endregion
             #region Initial
             InitializeComponent();
             bt_test_read_pcs.Enabled = false;
@@ -134,7 +134,7 @@ namespace test_everything
             //esettings.Credential = new MongoCredential(null, identity, evidence);
             //this.ems_dbconn = new MongoClient(esettings);
             //this.ems_db = ems_dbconn.GetDatabase("chang");  //資料庫名稱 
-            
+
             #endregion
 
             #region 排程輸出測試 2
@@ -896,7 +896,7 @@ namespace test_everything
         {
             Debug.Print("loop");
             c++;
-            if (c>5)
+            if (c > 5)
             {
                 _ThreadTimer.Dispose();
             }
@@ -2753,6 +2753,14 @@ namespace test_everything
         }
         #endregion
         #region 讀取Excel 
+        // example
+        //DataTable aa = new DataTable();
+        //    try
+        //    {aa = GetExcelData(@"D:\test_everything\test_everything\PV_OUTPUT.xlsx");}
+        //    catch (Exception ex)
+        //    {
+        //        Debug.Print(ex.Message);
+        //    }
         private Stopwatch wath = new Stopwatch();
         /// <summary>
         /// 使用COM讀取Excel
@@ -2832,6 +2840,60 @@ namespace test_everything
             }
         }
         #endregion
+        #region excel  寫入excel
+        /// <summary>
+        /// If the supplied excel File does not exist then Create it
+        /// </summary>
+        /// <param name="FileName"></param>
+        //輸入地址會創造一個Excel檔案 
+        private void CreateExcelFile(string FileName)
+        {
+            //create
+            object Nothing = System.Reflection.Missing.Value;
+            var app = new Excel.Application();
+            app.Visible = false;
+            Excel.Workbook workBook = app.Workbooks.Add(Nothing);
+            Excel.Worksheet worksheet = (Excel.Worksheet)workBook.Sheets[1];
+            worksheet.Name = "Work";
+            //headline
+            worksheet.Cells[1, 1] = "FileName"; //第一行 
+            worksheet.Cells[1, 2] = "FindString";
+            worksheet.Cells[1, 3] = "ReplaceString";
+
+            worksheet.SaveAs(FileName, Type.Missing, Type.Missing, Type.Missing, Type.Missing, Type.Missing, Excel.XlSaveAsAccessMode.xlNoChange, Type.Missing, Type.Missing, Type.Missing);
+            workBook.Close(false, Type.Missing, Type.Missing);
+            app.Quit();
+        }
+
+        /// <summary>
+        /// open an excel file,then write the content to file
+        /// </summary>
+        /// <param name="FileName">file name</param>
+        /// <param name="findString">first cloumn</param>
+        /// <param name="replaceString">second cloumn</param>
+        //寫入一個已經存在的excel檔案，輸入要插入的數值
+        private void WriteToExcel(string excelName, string filename, string findString, string replaceString)
+        {
+            //open
+            object Nothing = System.Reflection.Missing.Value;
+            var app = new Excel.Application();
+            app.Visible = false;
+            Excel.Workbook mybook = app.Workbooks.Open(excelName, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing);
+            Excel.Worksheet mysheet = (Excel.Worksheet)mybook.Worksheets[1];
+            mysheet.Activate();
+            //get activate sheet max row count
+            int maxrow = mysheet.UsedRange.Rows.Count + 1;
+            mysheet.Cells[maxrow, 1] = filename;// 在cloumn 1 寫入值
+            mysheet.Cells[maxrow, 2] = findString;
+            //mysheet.Cells[maxrow, 3] = replaceString;
+            mysheet.Cells[maxrow, 4] = replaceString;
+            mybook.Save();
+            mybook.Close(false, Type.Missing, Type.Missing);
+            mybook = null;
+            //quit excel app
+            app.Quit();
+        }
+        #endregion
         // 沒用到的副程式 
         public DataTable GetExcelTableByOleDB(string strExcelPath, string tableName)
         {
@@ -2900,8 +2962,8 @@ namespace test_everything
                 {
                     lv_Print(listView1, DateTime.Now.ToString(), item1.ToMode());
                 }
-                
-                
+
+
             }
             #endregion
         }
@@ -2909,6 +2971,38 @@ namespace test_everything
         private void Form1_Load(object sender, EventArgs e)
         {
 
+        }
+
+        private void button6_Click(object sender, EventArgs e)
+        {
+            WriteToExcel(@"D:\test_everything\test_everything\ssss.xlsx","1","2","444");
+        }
+
+        private void button7_Click(object sender, EventArgs e)
+        {
+            //build_Control_Setting();
+            //更新資料庫 
+            var coll = db.GetCollection<BsonDocument>("Control_Setting");  
+            var filter = Builders<BsonDocument>.Filter.Eq("Control_Setting", "Control_Setting");// & Builders<BsonDocument>.Filter.Eq("event", error_msg) & Builders<BsonDocument>.Filter.Eq("time", last_event);//////搜尋故障事件和發生時間以填入復歸時間
+            var update = Builders<BsonDocument>.Update.Set("time", DateTime.Now);
+            coll.UpdateOne(filter, update);
+        }
+        private void build_Control_Setting()
+        {
+            int time_offset = 8;
+            DateTime time_now = DateTime.Now;
+            var coll = db.GetCollection<BsonDocument>("Control_Setting");  //指定寫入給"categories"此collection  
+            coll.InsertOne(new BsonDocument
+            {
+                {"Control_Setting","Control_Setting" },
+                { "time", time_now.AddHours(time_offset) },
+                { "control_mode", "remote" },
+                { "schedule_enable","turn_on"},
+                { "steady_setpoint", 100 },
+                {"pcs_output",100 },
+                { "soc_max", 95},{ "soc_min", 5},
+                { "PV_rate",1000}
+            });
         }
     }
 }
