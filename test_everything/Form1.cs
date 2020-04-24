@@ -614,7 +614,7 @@ namespace test_everything
             #region rtu 連線
             try
             {
-                serialPort.PortName = "COM5";
+                serialPort.PortName = "COM6";
                 serialPort.BaudRate = 9600;
                 serialPort.DataBits = 8;
                 serialPort.Parity = Parity.None;
@@ -640,7 +640,9 @@ namespace test_everything
                 master_test_everthing.Transport.Retries = 0;   //don't have to do retries
                 master_test_everthing.Transport.ReadTimeout = 300; //milliseconds
                                                                    //master.ReadHoldingRegisters(1, startAddress, numofPoints);
-                master_test_everthing.WriteSingleRegister(1, 6008, 555); //結果會寫入46009 
+                //master_test_everthing.WriteSingleRegister(1, 6008, 555); //結果會寫入46009 
+                master_test_everthing.ReadInputRegisters(1, 1, 1);//04
+                master_test_everthing.ReadHoldingRegisters(1, 1, 1);//03
             }
             catch (Exception ex)
             {
@@ -3004,5 +3006,73 @@ namespace test_everything
                 { "PV_rate",1000}
             });
         }
+
+        private void button8_Click(object sender, EventArgs e)
+        {
+            //using System.IO.Ports;
+            SerialPort _serialPort = new SerialPort();
+            try
+            {
+                _serialPort.PortName = "COM6";
+                _serialPort.BaudRate = 9600;
+                _serialPort.Parity = Parity.None;
+                _serialPort.StopBits = StopBits.One;
+                _serialPort.DataBits = 8;
+                _serialPort.Open();
+            }
+            catch (Exception)
+            {
+
+                MessageBox.Show("打开串口失败!");
+            };
+
+            try
+            {
+                byte[] testbt = { 0x01, 0x64, 0xcf, 0x16, 0x00, 0x04, 0x08, 0x00, 0x64 , 0x00, 0x00};
+                //byte[] testbt = { 0x01, 0x03, 0x00, 0x00, 0x00, 0x64, 0x00, 0x00 };
+                modbus_crc(ref testbt);
+                _serialPort.Write(testbt, 0, testbt.Length);
+                // ref : https://www.blueshop.com.tw/board/FUM20050124192253INM/BRD20181217162351ARN.html
+            }
+            catch (Exception ex)
+            {
+                Debug.Print("modbus Exception" + ex.Message);
+                MessageBox.Show("modbus Exception" + ex.Message);
+            }
+            _serialPort.Close();
+        }
+        private void modbus_crc(ref byte[] data)
+        {
+            try
+            {
+                ushort CRCFull = 0xFFFF;
+                byte CRCHigh = 0xFF, CRCLow= 0xFF;
+                char CRCLSB;
+
+                for (int i = 0; i < (data.Length-2); i++)
+                {
+                    CRCFull = (ushort)(CRCFull ^ data[i]);
+                    for (int j = 0; j < 8; j++)
+
+                    {
+                        CRCLSB = (char)(CRCFull & 0x0001);
+
+                        CRCFull = (ushort)((CRCFull >> 1) & 0x7FFF);
+                        if (CRCLSB == 1)
+                        { CRCFull = (ushort)(CRCFull ^ 0xA001); }
+                    }
+                }
+
+                CRCLow = (byte)((CRCFull >> 8) & 0xFF);
+                CRCHigh = (byte)(CRCFull & 0xFF);
+                data[data.Length-2] = CRCHigh;
+                data[data.Length-1] = CRCLow;
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+        }
+
     }
 }
